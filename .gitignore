@@ -26,7 +26,6 @@ cli/src/main/resources/application-*.yml
 ### Javascript
 node
 node_modules
-dist
 coverage
 
 ### Build
