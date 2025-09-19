@@ -16,8 +16,8 @@ env:
   COREPACK_INTEGRITY_KEYS: 0
 
 jobs:
-  test:
-    name: kestra-devtools tests
+  continuous-delivery:
+    name: continuous delivery
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

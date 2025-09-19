@@ -1,0 +1,29 @@
+name: publish release to npm
+
+on:
+  push:
+    tags:
+      - *
+
+env:
+  # to save corepack from itself
+  COREPACK_INTEGRITY_KEYS: 0
+
+jobs:
+  publish-to-npm:
+    name: kestra-devtools tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Npm - install
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+      - name: bump and release a new patch version
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          npm publish
