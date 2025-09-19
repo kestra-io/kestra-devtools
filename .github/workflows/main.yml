@@ -32,6 +32,11 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      - name: Git - Configure
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
       - name: bump and release a new patch version
         run: npm version patch
         # see https://docs.npmjs.com/cli/v11/commands/npm-version#description
