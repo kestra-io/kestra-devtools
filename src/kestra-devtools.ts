@@ -2,6 +2,12 @@ import { getWorkingDir } from "./utilities/working-dir";
 import {exportTestReportSummary} from "./tests-reporting/export-test-report-summary";
 import {getPRContext} from "./github-context";
 
+/**
+ * Build-time injected constant defined via Vite `define` in vite.config.ts
+ *   define: { __APP_VERSION__: JSON.stringify(pkg.version) }
+ */
+declare const __APP_VERSION__: string;
+
 function parseArgs(argv: string[]) {
     // argv[0] = node, argv[1] = script, rest are args
     const args = argv.slice(2);
@@ -24,7 +30,7 @@ function parseArgs(argv: string[]) {
     return { flags, positionals };
 }
 
-const helpText = `kestra-devtools
+const helpText = `kestra-devtools version: ${__APP_VERSION__}
 
 A CLI utility to help with various development tasks
 
@@ -68,9 +74,8 @@ export async function main(argv = process.argv) {
     }
 
     if (flags.v || flags.version) {
-        // package.json is not bundled by default; prefer env-injected version if needed.
-        console.log("kestra-devtools v0.1.0");
-        return 0;
+      console.log(`kestra-devtools version: ${__APP_VERSION__}`);
+      return 0;
     }
 
     console.log(helpText);

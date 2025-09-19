@@ -1,4 +1,5 @@
 import { defineConfig } from "vitest/config";
+import pkg from "./package.json";
 
 export default defineConfig({
     test: {
@@ -8,5 +9,8 @@ export default defineConfig({
             reporter: ["text", "html"],
             reportsDirectory: "coverage",
         },
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
     },
 });

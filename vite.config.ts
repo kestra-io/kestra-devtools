@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import { builtinModules } from "node:module";
+import pkg from './package.json';
 
 // ensure Node-builtins stay external
 const externals = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)];
@@ -21,5 +22,8 @@ export default defineConfig({
                 banner: "#!/usr/bin/env node",
             },
         },
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
     },
 });
