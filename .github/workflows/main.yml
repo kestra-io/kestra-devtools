@@ -23,6 +23,6 @@ jobs:
       - name: Run tests
         run: npm run test
 
- #     - name: bump and release a new patch version
- #       run: npm version patch
+      - name: bump and release a new patch version
+        run: npm version patch
         # see https://docs.npmjs.com/cli/v11/commands/npm-version#description

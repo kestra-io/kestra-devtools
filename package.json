@@ -23,9 +23,11 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "author": "",
+  "repository": "https://github.com/kestra-io/kestra-devtools",
+  "author": "kestra-io",
   "license": "MIT",
   "type": "module",
+  "preferGlobal": true,
   "devDependencies": {
     "@eslint/js": "^9.35.0",
     "@types/node": "^24.3.1",
