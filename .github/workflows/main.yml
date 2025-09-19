@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+  packages: read
+
 env:
   # to save corepack from itself
   COREPACK_INTEGRITY_KEYS: 0
