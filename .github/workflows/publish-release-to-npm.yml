@@ -3,7 +3,7 @@ name: publish release to npm
 on:
   push:
     tags:
-      - *
+      - '*'
 
 env:
   # to save corepack from itself
