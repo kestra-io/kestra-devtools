@@ -19,6 +19,7 @@ env:
 jobs:
   continuous-delivery:
     name: continuous delivery
+    if: ${{ github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'chore(release)') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -39,5 +40,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: bump and release a new patch version
-        run: npm version patch
+        run: 'npm version patch -m "chore(release): %s"'
         # see https://docs.npmjs.com/cli/v11/commands/npm-version#description
