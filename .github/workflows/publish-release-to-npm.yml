@@ -23,7 +23,7 @@ jobs:
       - name: Run tests
         run: npm run test
 
-      - name: bump and release a new patch version
+      - name: publish publicly to npm
         run: |
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
           npm publish --access=public
