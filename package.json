@@ -23,7 +23,10 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "repository": "https://github.com/kestra-io/kestra-devtools",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kestra-io/kestra-devtools.git"
+  },
   "author": "kestra-io",
   "license": "MIT",
   "type": "module",
