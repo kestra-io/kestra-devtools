@@ -36,6 +36,19 @@
 
 # kestra-devtools
 An internal utility CLI for Kestra team.
+
+## usage
+```
+cd kestra
+# or
+cd kestra-ee
+
+# run backend tests like with ./gradlew test --parallel
+```
+```
+npx --yes @kestra-io/kestra-devtools generateTestReportSummary --only-errors $(pwd)
+```
+
 ## develop locally this CLI
 ```
 npm i
