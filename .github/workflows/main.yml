@@ -22,12 +22,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       - name: Npm - install
         run: npm ci
 
       - name: Run tests
         run: npm run test
+
+      - name: Setup git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: bump and release a new patch version
         run: npm version patch
