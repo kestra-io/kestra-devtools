@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { main } from "./kestra-devtools";
+import { main } from "./cli";
 
 describe("cli tests", () => {
     it("prints hello with default", async () => {
