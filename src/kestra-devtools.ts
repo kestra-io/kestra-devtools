@@ -90,4 +90,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
             console.error(err);
             process.exit(1);
         });
+} else {
+  console.log("not run directly")
 }
