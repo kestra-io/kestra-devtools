@@ -1,0 +1,28 @@
+name: kestra-devtools continuous delivery
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # to save corepack from itself
+  COREPACK_INTEGRITY_KEYS: 0
+
+jobs:
+  test:
+    name: kestra-devtools tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Npm - install
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
+
+ #     - name: bump and release a new patch version
+ #       run: npm version patch
+        # see https://docs.npmjs.com/cli/v11/commands/npm-version#description

@@ -1,0 +1,22 @@
+name: kestra-devtools pull request
+
+on:
+  pull_request:
+
+env:
+  # to save corepack from itself
+  COREPACK_INTEGRITY_KEYS: 0
+
+jobs:
+  test:
+    name: kestra-devtools tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Npm - install
+        run: npm ci
+
+      - name: Run tests
+        run: npm run test
