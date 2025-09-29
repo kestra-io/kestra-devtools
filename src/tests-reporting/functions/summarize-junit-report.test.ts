@@ -154,4 +154,9 @@ describe("summarize-junit-report test", () => {
         expect(res.markdownContent).contain("success: 2");
         expect(res.markdownContent).contain("skipped: 0");
     });
+  it("summarizeJunitReport should not crash when no reports were found", async () => {
+    const res = summarizeJunitReport([], { onlyErrors: true });
+
+    expect(res.markdownContent).contain("No test report were found");
+  });
 });
