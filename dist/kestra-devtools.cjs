@@ -157,4 +157,4 @@ ${Vf}`),1;const t=!!r.ci,s=rE(n),o=await Sp(s,{onlyErrors:!!r["only-errors"],git
 ${ZA}`),1;const t=r.repo;if(!t||typeof t!="string")return console.error(`Error: missing valid repo argument.
 ${ZA}`),1;const s=r.branches;if(!s||typeof s!="string")return console.error(`Error: missing valid branches argument.
 ${ZA}`),1;const o=r.githubToken;if(!o||typeof o!="string")return console.error(`Error: missing valid githubToken argument.
-${ZA}`),1;const a=await Yf(o,"kestra-io",t,n,s.split(","));return console.log(a),a.failed?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.17"),0):(console.log(Tg),0)}Wf().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
+${ZA}`),1;const a=await Yf(o,"kestra-io",t,n,s.split(","));return console.log(a.output),a.failed?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.17"),0):(console.log(Tg),0)}Wf().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
