@@ -7,3 +7,4 @@ export declare function listWorkflowRuns(githubToken: string, owner: string, rep
     runStartDate: string | undefined;
     url: string;
 }>;
+export declare function reRunWorkflow(githubToken: string, owner: string, repo: string, workflowRunId: number): Promise<void>;

@@ -66,3 +66,17 @@ export async function listWorkflowRuns(
     url: last.html_url,
   };
 }
+
+export async function reRunWorkflow(
+  githubToken: string,
+  owner: string,
+  repo: string,
+  workflowRunId: number,
+) {
+  const octokit = new Octokit({ auth: githubToken });
+  await octokit.rest.actions.reRunWorkflow({
+    owner,
+    repo,
+    run_id: workflowRunId,
+  });
+}

@@ -34,11 +34,14 @@ function parseArgs(argv: string[]) {
 const generateTestReportSummaryExample = `kestra-devtools generateTestReportSummary $(pwd) --only-errors`;
 const generateTestReportSummaryUsageDoc =
   `Usage: kestra-devtools generateTestReportSummary [absolute-path]` +
+  `\t--only-errors to only output error and their logs` +
   `\nExample: ${generateTestReportSummaryExample}`;
 
 const checkWorkflowStatusExample = `kestra-devtools checkWorkflowStatus main-build.yml --repo=kestra-ee --branches=releases/v0.22.x,releases/v0.23.x --githubToken=$GH_TOKEN`;
 const checkWorkflowStatusUsageDoc =
   `Usage: kestra-devtools checkWorkflowStatus [workflow-name.yml] --repo=[a-kestra-repo] --branches=[comma-separated-branches]` +
+  `\t--retry=1 to automatically retry a workflow if it was failed` +
+  `\t--json to output json` +
   `\nExample: ${checkWorkflowStatusExample}`;
 
 const helpText = `kestra-devtools version: ${__APP_VERSION__}
@@ -113,8 +116,30 @@ export async function main(argv = process.argv) {
         );
         return 1;
       }
-      const res = await checkWorkflowStatus(githubToken, "kestra-io", repo, workflowIdArg, branches.split(","));
-      console.log(res.output);
+      let retry: number | undefined = undefined;
+      if (flags["retry"]) {
+        retry = parseInt(flags["retry"] as string, 10);
+        if (!retry) {
+          console.error(
+            `Error: invalid retry argument: ${retry} .\n${checkWorkflowStatusUsageDoc}`,
+          );
+          return 1;
+        }
+      }
+      const res = await checkWorkflowStatus(
+        githubToken,
+        "kestra-io",
+        repo,
+        workflowIdArg,
+        branches.split(","),
+        { retry: retry },
+      );
+      if(flags["json"]){
+        console.log(JSON.stringify(res));
+      } else {
+        console.log(res.output);
+      }
+
       if (res.failed) {
         return 1;
       } else {
