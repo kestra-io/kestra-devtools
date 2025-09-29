@@ -18,7 +18,7 @@ export async function checkWorkflowStatus(
     strOutput = strOutput.concat(
       `\n${branch} > ${statusToIcon(workflowRes.status)} \n\t id: ${workflowRes.runId} \n\t name: ${workflowRes.name} \n\t commit: ${workflowRes.commitText} \n\t startDate: ${workflowRes.runStartDate} \n\t url: ${workflowRes.url}\n`,
     );
-    if(workflowRes.status ==='failure'){
+    if(workflowRes.status === 'failure'){
       hasFailed = true;
     }
   }
