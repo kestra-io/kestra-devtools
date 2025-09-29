@@ -114,7 +114,7 @@ export async function main(argv = process.argv) {
         return 1;
       }
       const res = await checkWorkflowStatus(githubToken, "kestra-io", repo, workflowIdArg, branches.split(","));
-      console.log(res);
+      console.log(res.output);
       if (res.failed) {
         return 1;
       } else {
