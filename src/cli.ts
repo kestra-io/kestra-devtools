@@ -1,6 +1,7 @@
 import { getWorkingDir } from "./utilities/working-dir";
-import {exportTestReportSummary} from "./tests-reporting/export-test-report-summary";
-import {getPRContext} from "./github-context";
+import { exportTestReportSummary } from "./tests-reporting/export-test-report-summary";
+import { getPRContext } from "./github-context";
+import { checkWorkflowStatus } from "./release-helpers/check-workflow-status";
 
 /**
  * Build-time injected constant defined via Vite `define` in vite.config.ts
@@ -30,6 +31,19 @@ function parseArgs(argv: string[]) {
     return { flags, positionals };
 }
 
+const generateTestReportSummaryExample = `kestra-devtools generateTestReportSummary $(pwd) --only-errors`;
+const generateTestReportSummaryUsageDoc =
+  `Usage: kestra-devtools generateTestReportSummary [absolute-path]` +
+  `\t--only-errors to only output error and their logs` +
+  `\nExample: ${generateTestReportSummaryExample}`;
+
+const checkWorkflowStatusExample = `kestra-devtools checkWorkflowStatus main-build.yml --repo=kestra-ee --branches=releases/v0.22.x,releases/v0.23.x --githubToken=$GH_TOKEN`;
+const checkWorkflowStatusUsageDoc =
+  `Usage: kestra-devtools checkWorkflowStatus [workflow-name.yml] --repo=[a-kestra-repo] --branches=[comma-separated-branches]` +
+  `\t--retry=1 to automatically retry a workflow if it was failed` +
+  `\t--json to output json` +
+  `\nExample: ${checkWorkflowStatusExample}`;
+
 const helpText = `kestra-devtools version: ${__APP_VERSION__}
 
 A CLI utility to help with various development tasks
@@ -42,8 +56,10 @@ Options:
 -v, --version  Show version
 
 Examples:
-kestra-devtools generateTestReportSummary $(pwd) --only-errors
 
+\t${generateTestReportSummaryExample}
+
+\t${checkWorkflowStatusExample}
 `;
 
 export async function main(argv = process.argv) {
@@ -58,7 +74,7 @@ export async function main(argv = process.argv) {
         const dirArg = positionals[1];
         if (!dirArg) {
             console.error(
-                "Error: missing working directory argument.\nUsage: kestra-devtools generateTestReportSummary <absolute-path>",
+              `Error: missing working directory argument.\n${generateTestReportSummaryUsageDoc}`,
             );
             return 1;
         }
@@ -71,6 +87,64 @@ export async function main(argv = process.argv) {
         // Print to stdout so it can be piped in CI or viewed in terminal
         console.log(summary);
         return 0;
+    } else if (positionals[0] === "checkWorkflowStatus") {
+      const workflowIdArg = positionals[1];
+      if (!workflowIdArg) {
+        console.error(
+          `Error: missing workflowId argument.\n${checkWorkflowStatusUsageDoc}`,
+        );
+        return 1;
+      }
+      const repo = flags["repo"];
+      if (!repo || typeof repo !== "string") {
+        console.error(
+          `Error: missing valid repo argument.\n${checkWorkflowStatusUsageDoc}`,
+        );
+        return 1;
+      }
+      const branches = flags["branches"];
+      if (!branches || typeof branches !== "string") {
+        console.error(
+          `Error: missing valid branches argument.\n${checkWorkflowStatusUsageDoc}`,
+        );
+        return 1;
+      }
+      const githubToken = flags["githubToken"];
+      if (!githubToken || typeof githubToken !== "string") {
+        console.error(
+          `Error: missing valid githubToken argument.\n${checkWorkflowStatusUsageDoc}`,
+        );
+        return 1;
+      }
+      let retry: number | undefined = undefined;
+      if (flags["retry"]) {
+        retry = parseInt(flags["retry"] as string, 10);
+        if (!retry) {
+          console.error(
+            `Error: invalid retry argument: ${retry} .\n${checkWorkflowStatusUsageDoc}`,
+          );
+          return 1;
+        }
+      }
+      const res = await checkWorkflowStatus(
+        githubToken,
+        "kestra-io",
+        repo,
+        workflowIdArg,
+        branches.split(","),
+        { retry: retry },
+      );
+      if(flags["json"]){
+        console.log(JSON.stringify(res));
+      } else {
+        console.log(res.output);
+      }
+
+      if (res.failed) {
+        return 1;
+      } else {
+        return 0;
+      }
     }
 
     if (flags.v || flags.version) {
