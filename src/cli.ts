@@ -126,13 +126,17 @@ export async function main(argv = process.argv) {
           return 1;
         }
       }
+      let notify: boolean | undefined = undefined;
+      if (flags["notify"]) {
+        notify = true;
+      }
       const res = await checkWorkflowStatus(
         githubToken,
         "kestra-io",
         repo,
         workflowIdArg,
         branches.split(","),
-        { retry: retry },
+        { retry: retry, notify: notify },
       );
       if(flags["json"]){
         console.log(JSON.stringify(res));
