@@ -40,5 +40,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: bump and release a new patch version
+        # TODO we could definitively improve that with a proper semver check,
+        # but be careful of the race condition were a commit is pushed before the last one finish building, it can cause semver to be non-deterministic,
+        # for the CI to be deterministic you need to take into account previous recents commits, see https://github.com/nrwl/nx-set-shas?tab=readme-ov-file#problem
+        if: ${{ contains(fromJSON('["feat:", "feat(", "fix:", "fix("]'), github.event.head_commit.message) }}
         run: 'npm version patch -m "chore(release): %s"'
         # see https://docs.npmjs.com/cli/v11/commands/npm-version#description
