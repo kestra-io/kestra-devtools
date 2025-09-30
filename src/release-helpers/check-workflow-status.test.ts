@@ -83,7 +83,7 @@ describe("check-workflow-status test", () => {
       "kestra-ee",
       "main-build.yml",
       ["branch1failed"],
-      { retry: 1 },
+      { retry: 1, notify: undefined },
     );
 
     expect(res.output).toBeDefined();
@@ -105,7 +105,7 @@ describe("check-workflow-status test", () => {
       "kestra-ee",
       "main-build.yml",
       ["branch1"],
-      { retry: 1 },
+      { retry: 1, notify: undefined },
     );
 
     expect(res.output).not.toContain("retrying branch1 workflow");
@@ -124,7 +124,7 @@ describe("check-workflow-status test", () => {
       "kestra-ee",
       "main-build.yml",
       ["branch1running"],
-      { retry: 1 },
+      { retry: 1, notify: undefined },
     );
 
     expect(res.output).toBeDefined();
