@@ -141,7 +141,7 @@ ${c} > ${zf(u.status)}
 	♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️
 `),await Dh(e,r,A,u.runId),a.push({branch:c}))}}return{output:o,failed:i,triggeredRetries:a}}function zf(e){return e==="success"?`${e} ✅`:e==="failure"?`${e} ❌`:e==="in_progress"?`${e} ⏳`:e}function eQ(e){const r=e.slice(2),A={},n=[];for(let t=0;t<r.length;t++){const s=r[t];if(s.startsWith("--")){const[o,i]=s.slice(2).split("=");A[o]=i??!0}else s.startsWith("-")&&s.length>1?s.slice(1).split("").forEach(i=>A[i]=!0):n.push(s)}return{flags:A,positionals:n}}const Wl="kestra-devtools generateTestReportSummary $(pwd) --only-errors",tQ=`Usage: kestra-devtools generateTestReportSummary [absolute-path]	--only-errors to only output error and their logs
 Example: ${Wl}`,jl="kestra-devtools checkWorkflowStatus main-build.yml --repo=kestra-ee --branches=releases/v0.22.x,releases/v0.23.x --githubToken=$GH_TOKEN",lA=`Usage: kestra-devtools checkWorkflowStatus [workflow-name.yml] --repo=[a-kestra-repo] --branches=[comma-separated-branches]	--retry=1 to automatically retry a workflow if it was failed	--json to output json
-Example: ${jl}`,_g=`kestra-devtools version: 1.0.19
+Example: ${jl}`,_g=`kestra-devtools version: 1.0.20
 
 A CLI utility to help with various development tasks
 
@@ -163,4 +163,4 @@ ${lA}`),1;const t=r.repo;if(!t||typeof t!="string")return console.error(`Error: 
 ${lA}`),1;const s=r.branches;if(!s||typeof s!="string")return console.error(`Error: missing valid branches argument.
 ${lA}`),1;const o=r.githubToken;if(!o||typeof o!="string")return console.error(`Error: missing valid githubToken argument.
 ${lA}`),1;let i;if(r.retry&&(i=parseInt(r.retry,10),!i))return console.error(`Error: invalid retry argument: ${i} .
-${lA}`),1;const a=await Zf(o,"kestra-io",t,n,s.split(","),{retry:i});return r.json?console.log(JSON.stringify(a)):console.log(a.output),a.failed?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.19"),0):(console.log(_g),0)}rQ().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
+${lA}`),1;const a=await Zf(o,"kestra-io",t,n,s.split(","),{retry:i});return r.json?console.log(JSON.stringify(a)):console.log(a.output),a.failed?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.20"),0):(console.log(_g),0)}rQ().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
