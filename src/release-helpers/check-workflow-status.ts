@@ -13,7 +13,7 @@ export async function checkWorkflowStatus(
   },
 ): Promise<{
   output: string;
-  failed: boolean;
+  status: 'success' | 'failure' | 'in_progress';
   triggeredRetries: { branch: string }[];
 }> {
   if (!branches || branches.length === 0) {
@@ -22,6 +22,7 @@ export async function checkWorkflowStatus(
 
   let strOutput = `Checking status for workflow ${workflowId} on branches: ${branches} for owner: ${owner} and repo: ${repo}\n`;
   let hasFailed = false;
+  let anyStillRunning = false;
   const triggeredRetries: { branch: string }[] = [];
 
   for (const branch of branches) {
@@ -45,9 +46,11 @@ export async function checkWorkflowStatus(
           triggeredRetries.push({ branch: branch });
         }
       }
+    } else if(workflowRes.status === 'in_progress'){
+        anyStillRunning = true;
     }
   }
-  return { output: strOutput, failed: hasFailed, triggeredRetries: triggeredRetries };
+  return { output: strOutput, status: hasFailed ? "failure":  anyStillRunning ? "in_progress" : "success", triggeredRetries: triggeredRetries };
 }
 
 function statusToIcon(status: string): string {

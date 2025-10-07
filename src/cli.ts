@@ -144,7 +144,7 @@ export async function main(argv = process.argv) {
         console.log(res.output);
       }
 
-      if (res.failed) {
+      if (res.status === 'failure') {
         return 1;
       } else {
         return 0;

@@ -51,7 +51,7 @@ describe("check-workflow-status test", () => {
     expect(res.output).toBeDefined();
     expect(res.output).toContain("branch1 > success");
     expect(res.output).toContain("branch2 > success");
-    expect(res.failed).toEqual(false);
+    expect(res.status).toEqual('success');
   });
   it("check not ok for workflow in failure", async () => {
     // Arrange: mock the internal call that fetches workflow runs
@@ -68,7 +68,43 @@ describe("check-workflow-status test", () => {
 
     expect(res.output).toBeDefined();
     expect(res.output).toContain("branch1failed > failure");
-    expect(res.failed).toEqual(true);
+    expect(res.status).toEqual('failure');
+  });
+  it("check not ok for workflow both in failure and in_progress", async () => {
+    // Arrange: mock the internal call that fetches workflow runs
+    const listWorkflowRunsMock = listWorkflowRuns as unknown as Mock;
+    listWorkflowRunsMock
+      .mockResolvedValueOnce(failureWorkflowRunFixture)
+      .mockResolvedValueOnce(runningWorkflowRunFixture);
+
+    const res = await checkWorkflowStatus(
+      "fake-token",
+      "kestra-io",
+      "kestra-ee",
+      "main-build.yml",
+      ["branch1","branch2"],
+    );
+
+    expect(res.output).toBeDefined();
+    expect(res.status).toEqual('failure');
+  });
+  it("check ok and status in_progress for workflow both in success and in_progress", async () => {
+    // Arrange: mock the internal call that fetches workflow runs
+    const listWorkflowRunsMock = listWorkflowRuns as unknown as Mock;
+    listWorkflowRunsMock
+      .mockResolvedValueOnce(successWorkflowRunFixture)
+      .mockResolvedValueOnce(runningWorkflowRunFixture);
+
+    const res = await checkWorkflowStatus(
+      "fake-token",
+      "kestra-io",
+      "kestra-ee",
+      "main-build.yml",
+      ["branch1","branch2"],
+    );
+
+    expect(res.output).toBeDefined();
+    expect(res.status).toEqual('in_progress');
   });
   it("check with retry should trigger retry if workflow was failed", async () => {
     // Arrange: mock the internal call that fetches workflow runs
