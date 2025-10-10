@@ -3,7 +3,7 @@ export declare function checkWorkflowStatus(githubToken: string, owner: string, 
     notify: boolean | undefined;
 }): Promise<{
     output: string;
-    failed: boolean;
+    status: 'success' | 'failure' | 'in_progress';
     triggeredRetries: {
         branch: string;
     }[];

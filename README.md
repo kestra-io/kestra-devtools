@@ -53,7 +53,7 @@ npx --yes @kestra-io/kestra-devtools generateTestReportSummary --only-errors $(p
 ```
 npm i
 npm run test
-npm build
+npm run build
 npm run start --help
 npm run start checkWorkflowStatus main.yml -- --repo=kestra --branches=releases/v0.22.x,releases/v0.23.x,releases/v0.24.x,releases/v1.0.x --githubToken=$(gh auth status -t 2>/dev/null | awk '/Token:/ {print $3}') --retry=1
 ```

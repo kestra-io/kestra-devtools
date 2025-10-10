@@ -15,13 +15,14 @@ export async function generateTestReportSummary(
     options?: {
         onlyErrors?: boolean;
         testReportsLocationPattern?: "**/build/test-results/test/*.xml";
+        flakyTestReportsLocationPattern?: "**/build/test-results/flakyTest/*.xml";
     },
 ): Promise<MarkdownString> {
     const onlyErrors = options?.onlyErrors ?? false;
-    const pattern = options?.testReportsLocationPattern ?? "**/build/test-results/test/*.xml";
+    const testPattern = options?.testReportsLocationPattern ?? "**/build/test-results/test/*.xml";
 
     // Find matching report files under the provided working directory
-    const junitXmlReportsFilenames = await fg.async(pattern, {
+    const junitXmlTestReportsFilenames = await fg.async(testPattern, {
         cwd: workingDir,
         absolute: true,
         onlyFiles: true,
@@ -30,7 +31,27 @@ export async function generateTestReportSummary(
     });
 
     // Parse each JUnit report into a module-level structure
-    const moduleReports: TestReport[] = junitXmlReportsFilenames.map((file) => {
+    const moduleTestReports: TestReport[] = junitXmlTestReportsFilenames.map((file) => {
+        const content = fs.readFileSync(file, "utf-8");
+        return {
+            projectName: getJavaProjectNameFromBuildAbsolutePath(file),
+            projectReport: parseJunitModuleReport(content),
+        };
+    });
+
+    const flakyTestPattern = options?.testReportsLocationPattern ?? "**/build/test-results/flakyTest/*.xml";
+
+    // Find matching report files under the provided working directory
+    const junitXmlFlakyTestReportsFilenames = await fg.async(flakyTestPattern, {
+        cwd: workingDir,
+        absolute: true,
+        onlyFiles: true,
+        dot: true,
+        followSymbolicLinks: true,
+    });
+
+    // Parse each JUnit report into a module-level structure
+    const moduleFlakyTestReports: TestReport[] = junitXmlFlakyTestReportsFilenames.map((file) => {
         const content = fs.readFileSync(file, "utf-8");
         return {
             projectName: getJavaProjectNameFromBuildAbsolutePath(file),
@@ -39,5 +60,10 @@ export async function generateTestReportSummary(
     });
 
     // Summarize all parsed reports into a single Markdown string
-    return summarizeJunitReport(moduleReports, {onlyErrors: onlyErrors}).markdownContent;
+    const markdownContent =  "## Tests report quick summary:" + summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors}).markdownContent;
+
+    if (!moduleFlakyTestReports || moduleFlakyTestReports.length === 0) {
+        return markdownContent
+    }
+    return  markdownContent + "\n---\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
 }

@@ -14,7 +14,7 @@ export interface TestReportSummary {
 
 export function summarizeJunitReport(
   testReports: TestReport[],
-  options?: { onlyErrors: boolean },
+  options?: { onlyErrors: boolean; },
 ): TestReportSummary {
   const onlyErrors = options?.onlyErrors ?? false;
 
@@ -23,7 +23,7 @@ export function summarizeJunitReport(
   const testReportErrorLogs: string[] = [];
   let hasErrors = false;
 
-  let markdownContent = "## Tests report quick summary:";
+  let markdownContent = "";
   if (!testReports || testReports.length === 0) {
     return {hasErrors, markdownContent: markdownContent + '\nNo test report were found'};
   }
