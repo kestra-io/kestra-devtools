@@ -8,4 +8,5 @@ import { MarkdownString } from "./functions/summarize-junit-report";
 export declare function generateTestReportSummary(workingDir: WorkingDir, options?: {
     onlyErrors?: boolean;
     testReportsLocationPattern?: "**/build/test-results/test/*.xml";
+    flakyTestReportsLocationPattern?: "**/build/test-results/flakyTest/*.xml";
 }): Promise<MarkdownString>;
