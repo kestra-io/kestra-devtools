@@ -2,6 +2,7 @@ import { getWorkingDir } from "./utilities/working-dir";
 import { exportTestReportSummary } from "./tests-reporting/export-test-report-summary";
 import { getPRContext } from "./utilities/github/github-context";
 import { checkWorkflowStatus } from "./release-helpers/check-workflow-status";
+import { getCompatiblePlugins } from "./tests-reporting/functions/get-compatible-plugins";
 
 /**
  * Build-time injected constant defined via Vite `define` in vite.config.ts
@@ -44,6 +45,11 @@ const checkWorkflowStatusUsageDoc =
   `\t--json to output json` +
   `\nExample: ${checkWorkflowStatusExample}`;
 
+const getCompatiblePluginsExample = `kestra-devtools getCompatiblePlugins v1.0.0`;
+const getCompatiblePluginsUsageDoc =
+  `Usage: kestra-devtools getCompatiblePlugins [kestraVersion]` +
+  `\nExample: ${checkWorkflowStatusExample}`;
+
 const helpText = `kestra-devtools version: ${__APP_VERSION__}
 
 A CLI utility to help with various development tasks
@@ -60,6 +66,8 @@ Examples:
 \t${generateTestReportSummaryExample}
 
 \t${checkWorkflowStatusExample}
+
+\t${getCompatiblePluginsExample}
 `;
 
 export async function main(argv = process.argv) {
@@ -149,6 +157,20 @@ export async function main(argv = process.argv) {
       } else {
         return 0;
       }
+    }else if (positionals[0] === "getCompatiblePlugins"){
+      const kestraVersionArg = positionals[1];
+      if (!kestraVersionArg) {
+        console.error(
+          `Error: missing kestra version argument.\n${getCompatiblePluginsUsageDoc}`,
+        );
+        return 1;
+      }
+      const compatiblePlugins = await getCompatiblePlugins(
+        kestraVersionArg
+      );
+      // Print to stdout so it can be piped in CI or viewed in terminal
+      console.log(compatiblePlugins.out);
+      return 0;
     }
 
     if (flags.v || flags.version) {
