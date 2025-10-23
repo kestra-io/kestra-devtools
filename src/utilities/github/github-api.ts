@@ -1,4 +1,7 @@
 import { Octokit } from "octokit";
+import { findComment } from "./github-comment-issue-api";
+
+const kestraDevtoolCommentId = "comment_generated_with_https://github.com/kestra-io/kestra-devtools";
 
 export async function commentPR(
   githubToken: string,
@@ -9,12 +12,29 @@ export async function commentPR(
 ) {
   const octokit = new Octokit({ auth: githubToken });
 
-  await octokit.rest.issues.createComment({
-    owner,
-    repo,
-    issue_number: prNumber,
-    body: content,
+  // add a hidden id so we are able to search this comment
+  content = `<!-- ${kestraDevtoolCommentId} -->\n${content}`;
+  const previousComment = await findComment(githubToken, owner, repo, {
+    issueNumber: prNumber,
+    bodyIncludes: kestraDevtoolCommentId,
   });
+  if (previousComment) {
+    // update
+    await octokit.rest.issues.updateComment({
+      owner,
+      repo,
+      comment_id: previousComment.id,
+      body: content,
+    });
+  } else {
+    // create
+    await octokit.rest.issues.createComment({
+      owner,
+      repo,
+      issue_number: prNumber,
+      body: content,
+    });
+  }
 }
 
 export async function listWorkflowRuns(

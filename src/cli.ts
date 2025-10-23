@@ -1,6 +1,6 @@
 import { getWorkingDir } from "./utilities/working-dir";
 import { exportTestReportSummary } from "./tests-reporting/export-test-report-summary";
-import { getPRContext } from "./github-context";
+import { getPRContext } from "./utilities/github/github-context";
 import { checkWorkflowStatus } from "./release-helpers/check-workflow-status";
 
 /**
