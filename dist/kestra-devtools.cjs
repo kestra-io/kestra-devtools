@@ -29,7 +29,7 @@ ${qA(p)} > tests: ${u}, success: ${c}, skipped: ${l}, failed: ${g}
 `)),n.length>0&&(B=B+`
 ## Failed tests:`,B=B+`
 `+[...n].join(`
-`)),p==="success"?a=a+vc("click for details",B):a=a+B,{hasErrors:o,markdownContent:a}}function Vp(e){const r=new Map;for(const A of e){const s=A.projectName,t=r.get(s);if(t)t.testsuites=[...t.testsuites,...A.projectReport.testsuites],Dc(t);else{const n={...A.projectReport,testsuites:[...A.projectReport.testsuites]};Dc(n),r.set(s,n)}}return Array.from(r.entries()).map(([A,s])=>({projectName:A,projectReport:s}))}function Dc(e){let r=0,A=0,s=0,t=0;for(const a of e.testsuites)for(const i of a.testcases)switch(i.status){case"success":r++;break;case"skipped":A++;break;case"error":s++;break;case"failed":t++;break}const n=r+A+s+t;e.success=r,e.skipped=A,e.errors=s,e.failures=t,"tests"in e&&(e.tests=n);let o;n>0&&A===n?o="skipped":s>0?o="error":t>0?o="failed":o="success",e.status=o}function Vt(e){return(e==null?"":String(e)).replace(/\|/g,"\\|").replace(/\r?\n/g," ↵ ")}function Wp(e){return`\`\`\`
+`)),p==="success"?a=a+vc("unfold for details",B):a=a+B,{hasErrors:o,markdownContent:a}}function Vp(e){const r=new Map;for(const A of e){const s=A.projectName,t=r.get(s);if(t)t.testsuites=[...t.testsuites,...A.projectReport.testsuites],Dc(t);else{const n={...A.projectReport,testsuites:[...A.projectReport.testsuites]};Dc(n),r.set(s,n)}}return Array.from(r.entries()).map(([A,s])=>({projectName:A,projectReport:s}))}function Dc(e){let r=0,A=0,s=0,t=0;for(const a of e.testsuites)for(const i of a.testcases)switch(i.status){case"success":r++;break;case"skipped":A++;break;case"error":s++;break;case"failed":t++;break}const n=r+A+s+t;e.success=r,e.skipped=A,e.errors=s,e.failures=t,"tests"in e&&(e.tests=n);let o;n>0&&A===n?o="skipped":s>0?o="error":t>0?o="failed":o="success",e.status=o}function Vt(e){return(e==null?"":String(e)).replace(/\|/g,"\\|").replace(/\r?\n/g," ↵ ")}function Wp(e){return`\`\`\`
 ${e==null?"":String(e)}
 \`\`\`
 `}function vc(e,r){return`<details>
@@ -147,7 +147,7 @@ ${c} > ${gy(l.status)}
 Details: ${e.url}`:""),icon:void 0}),"Success notification sent."):e.status==="failure"?(Fh.notify({title:"❌ Workflow Failed - "+e.name,message:"The workflow has failed."+(e.url?`
 Details: ${e.url}`:""),icon:void 0}),"Failure notification sent."):"No notification sent."}function hy(e){const r=e.slice(2),A={},s=[];for(let t=0;t<r.length;t++){const n=r[t];if(n.startsWith("--")){const[o,a]=n.slice(2).split("=");A[o]=a??!0}else n.startsWith("-")&&n.length>1?n.slice(1).split("").forEach(a=>A[a]=!0):s.push(n)}return{flags:A,positionals:s}}const lf="kestra-devtools generateTestReportSummary $(pwd) --only-errors",dy=`Usage: kestra-devtools generateTestReportSummary [absolute-path]	--only-errors to only output error and their logs
 Example: ${lf}`,gf="kestra-devtools checkWorkflowStatus main-build.yml --repo=kestra-ee --branches=releases/v0.22.x,releases/v0.23.x --githubToken=$GH_TOKEN",TA=`Usage: kestra-devtools checkWorkflowStatus [workflow-name.yml] --repo=[a-kestra-repo] --branches=[comma-separated-branches]	--retry=1 to automatically retry a workflow if it was failed	--json to output json
-Example: ${gf}`,Nh=`kestra-devtools version: 1.0.21
+Example: ${gf}`,Nh=`kestra-devtools version: 1.0.22
 
 A CLI utility to help with various development tasks
 
@@ -169,4 +169,4 @@ ${TA}`),1;const t=r.repo;if(!t||typeof t!="string")return console.error(`Error: 
 ${TA}`),1;const n=r.branches;if(!n||typeof n!="string")return console.error(`Error: missing valid branches argument.
 ${TA}`),1;const o=r.githubToken;if(!o||typeof o!="string")return console.error(`Error: missing valid githubToken argument.
 ${TA}`),1;let a;if(r.retry&&(a=parseInt(r.retry,10),!a))return console.error(`Error: invalid retry argument: ${a} .
-${TA}`),1;let i;r.notify&&(i=!0);const u=await ly(o,"kestra-io",t,s,n.split(","),{retry:a,notify:i});return r.json?console.log(JSON.stringify(u)):console.log(u.output),u.status==="failure"?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.21"),0):(console.log(Nh),0)}fy().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
+${TA}`),1;let i;r.notify&&(i=!0);const u=await ly(o,"kestra-io",t,s,n.split(","),{retry:a,notify:i});return r.json?console.log(JSON.stringify(u)):console.log(u.output),u.status==="failure"?1:0}return r.v||r.version?(console.log("kestra-devtools version: 1.0.22"),0):(console.log(Nh),0)}fy().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
