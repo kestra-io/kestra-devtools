@@ -1,4 +1,4 @@
-import { listWorkflowRuns, reRunWorkflow } from "../github-api";
+import { listWorkflowRuns, reRunWorkflow } from "../utilities/github/github-api";
 import notifier from "node-notifier";
 
 export async function checkWorkflowStatus(

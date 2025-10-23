@@ -1,10 +1,10 @@
 import { describe, expect, it, Mock, vi } from "vitest";
 // Import after mock so we get the mocked function value
-import { listWorkflowRuns, reRunWorkflow } from "../github-api";
+import { listWorkflowRuns, reRunWorkflow } from "../utilities/github/github-api";
 import { checkWorkflowStatus } from "./check-workflow-status";
 
 // Mock the internal GitHub API module used by checkWorkflowStatus
-vi.mock("../github-api", () => ({
+vi.mock("../utilities/github/github-api", () => ({
   listWorkflowRuns: vi.fn(),
   reRunWorkflow: vi.fn(),
 }));

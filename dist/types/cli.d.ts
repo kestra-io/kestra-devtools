@@ -1,1 +1,1 @@
-export declare function main(argv?: string[]): Promise<1 | 0>;
+export declare function main(argv?: string[]): Promise<0 | 1>;

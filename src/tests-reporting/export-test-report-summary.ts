@@ -1,4 +1,4 @@
-import {commentPR} from "../github-api";
+import { commentPR } from "../utilities/github/github-api";
 import {WorkingDir} from "../utilities/working-dir";
 import {generateTestReportSummary} from "./generate-test-report-summary";
 import {strict as assert} from 'assert';
