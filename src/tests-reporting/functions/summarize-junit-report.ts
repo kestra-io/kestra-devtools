@@ -67,20 +67,28 @@ export function summarizeJunitReport(
   const totalErrors = testReports
     .map((r) => r.projectReport.failures + r.projectReport.errors)
     .reduce((a, b) => a + b);
+  const finalTestStatus = hasErrors ? 'failed' : 'success';
   markdownContent =
     markdownContent +
-    `\ntotals > tests: ${totalTests}, success: ${totalSuccess}, skipped: ${totalSkipped}, failed: ${totalErrors}\n`;
-  markdownContent =
-    markdownContent + `\n| Project | Status | Success | Skipped | Failed |\n|---|---|---|---|---|`;
-  markdownContent = markdownContent + "\n" + [...testReportQuickSummaryRows].join("\n");
+    `\n${mapStatusToEmoji(finalTestStatus)} > tests: ${totalTests}, success: ${totalSuccess}, skipped: ${totalSkipped}, failed: ${totalErrors}\n`;
+
+  let tableMarkdown = `\n| Project | Status | Success | Skipped | Failed |\n|---|---|---|---|---|`;
+  tableMarkdown = tableMarkdown + "\n" + [...testReportQuickSummaryRows].join("\n");
   if (testReportDetailsRows.length > 0) {
-    markdownContent = markdownContent + "\n\n" + "## Tests report details:";
+    tableMarkdown = tableMarkdown + "\n\n" + "## Tests report details:";
     const header = `| Project | Suite | Test | Status | Duration (s) | Message |\n|---|---|---|---|---:|---|`;
-    markdownContent = markdownContent + "\n" + [header, ...testReportDetailsRows].join("\n");
+    tableMarkdown = tableMarkdown + "\n" + [header, ...testReportDetailsRows].join("\n");
   }
   if (testReportErrorLogs.length > 0) {
-    markdownContent = markdownContent + "\n## Failed tests:";
-    markdownContent = markdownContent + "\n" + [...testReportErrorLogs].join("\n");
+    tableMarkdown = tableMarkdown + "\n## Failed tests:";
+    tableMarkdown = tableMarkdown + "\n" + [...testReportErrorLogs].join("\n");
+  }
+
+  if(finalTestStatus === 'success'){
+    // collapse it
+    markdownContent = markdownContent + spoilerBlock('unfold for details', tableMarkdown);
+  } else {
+    markdownContent = markdownContent + tableMarkdown;
   }
 
   return { hasErrors, markdownContent };
