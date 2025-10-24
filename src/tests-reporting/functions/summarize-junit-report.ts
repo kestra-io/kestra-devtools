@@ -185,7 +185,7 @@ function spoilerBlock(summary: string, content: string): string {
 <summary>${summary}</summary>
 
 ${content}
-</details>`;
+</details>\n`;
 }
 
 function truncate(s: string, max: number): string {
