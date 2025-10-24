@@ -65,5 +65,5 @@ export async function generateTestReportSummary(
     if (!moduleFlakyTestReports || moduleFlakyTestReports.length === 0) {
         return markdownContent
     }
-    return  markdownContent + "\n---\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    return  markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
 }
