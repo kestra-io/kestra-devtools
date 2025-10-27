@@ -1,4 +1,4 @@
-import { getWorkingDir } from "./utilities/working-dir";
+import { getDefaultWorkingDir, validateWorkingDir } from "./utilities/working-dir";
 import { exportTestReportSummary } from "./tests-reporting/export-test-report-summary";
 import { getPRContext } from "./utilities/github/github-context";
 import { checkWorkflowStatus } from "./release-helpers/check-workflow-status";
@@ -87,7 +87,7 @@ export async function main(argv = process.argv) {
             return 1;
         }
         const ci = Boolean(flags["ci"]);
-        const workingDir = getWorkingDir(dirArg);
+        const workingDir = validateWorkingDir(dirArg);
         const summary = await exportTestReportSummary(workingDir, {
             onlyErrors: Boolean(flags["only-errors"]),
             githubContext: ci ? getPRContext() : undefined
@@ -166,7 +166,10 @@ export async function main(argv = process.argv) {
         return 1;
       }
       const compatiblePlugins = await getCompatiblePlugins(
-        kestraVersionArg
+        kestraVersionArg,
+        {
+          workingDir: getDefaultWorkingDir()
+        }
       );
       // Print to stdout so it can be piped in CI or viewed in terminal
       console.log(compatiblePlugins.out);

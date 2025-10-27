@@ -1,9 +1,15 @@
 import axios from "axios";
+import { inferKestraRepository, WorkingDir } from "../../utilities/working-dir";
 
-export async function getCompatiblePlugins(kestraVersion: string): Promise<{
+export async function getCompatiblePlugins(kestraVersion: string, opts: {workingDir: WorkingDir}): Promise<{
   out: string;
 }> {
-  const response = await axios.get(`https://api.kestra.io/v1/plugins/artifacts/core-compatibility/${kestraVersion}/latest`);
+  const license = await inferKestraRepository(opts.workingDir) === 'kestra-oss' ? 'OPEN_SOURCE' : undefined;
+  const response = await axios.get(
+    `https://api.kestra.io/v1/plugins/artifacts/core-compatibility/${kestraVersion}/latest`,
+    {
+      params: {license: license}
+    });
   const data = response.data as APILatestCompatiblePluginsResponse;
   const formatted = convertAPICompatiblePluginResponseToOurCIFormat(data);
   return { out: formatted.plugins.join(' ')};
