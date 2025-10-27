@@ -39,7 +39,6 @@ export function validateWorkingDir(workingDir?: string): WorkingDir {
 export async function inferKestraRepository(
   workingDir: WorkingDir,
 ): Promise<"kestra-oss" | "kestra-ee" | "unknown"> {
-  console.log(process.env.GITHUB_REPOSITORY);
   if (process.env.GITHUB_REPOSITORY === "kestra-io/kestra-ee") {
     return "kestra-ee";
   } else if (process.env.GITHUB_REPOSITORY === "kestra-io/kestra") {
