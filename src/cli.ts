@@ -79,49 +79,41 @@ export async function main(argv = process.argv) {
     }
 
     if (positionals[0] === "generateTestReportSummary") {
-        const dirArg = positionals[1];
-        if (!dirArg) {
-            console.error(
-              `Error: missing working directory argument.\n${generateTestReportSummaryUsageDoc}`,
-            );
-            return 1;
-        }
-        const ci = Boolean(flags["ci"]);
-        const workingDir = validateWorkingDir(dirArg);
-        const summary = await exportTestReportSummary(workingDir, {
-            onlyErrors: Boolean(flags["only-errors"]),
-            githubContext: ci ? getPRContext() : undefined
-        });
-        // Print to stdout so it can be piped in CI or viewed in terminal
-        console.log(summary);
-        return 0;
+      const dirArg = positionals[1];
+      if (!dirArg) {
+        console.error(
+          `Error: missing working directory argument.\n${generateTestReportSummaryUsageDoc}`,
+        );
+        return 1;
+      }
+      const ci = Boolean(flags["ci"]);
+      const workingDir = validateWorkingDir(dirArg);
+      const summary = await exportTestReportSummary(workingDir, {
+        onlyErrors: Boolean(flags["only-errors"]),
+        githubContext: ci ? getPRContext() : undefined,
+      });
+      // Print to stdout so it can be piped in CI or viewed in terminal
+      console.log(summary);
+      return 0;
     } else if (positionals[0] === "checkWorkflowStatus") {
       const workflowIdArg = positionals[1];
       if (!workflowIdArg) {
-        console.error(
-          `Error: missing workflowId argument.\n${checkWorkflowStatusUsageDoc}`,
-        );
+        console.error(`Error: missing workflowId argument.\n${checkWorkflowStatusUsageDoc}`);
         return 1;
       }
       const repo = flags["repo"];
       if (!repo || typeof repo !== "string") {
-        console.error(
-          `Error: missing valid repo argument.\n${checkWorkflowStatusUsageDoc}`,
-        );
+        console.error(`Error: missing valid repo argument.\n${checkWorkflowStatusUsageDoc}`);
         return 1;
       }
       const branches = flags["branches"];
       if (!branches || typeof branches !== "string") {
-        console.error(
-          `Error: missing valid branches argument.\n${checkWorkflowStatusUsageDoc}`,
-        );
+        console.error(`Error: missing valid branches argument.\n${checkWorkflowStatusUsageDoc}`);
         return 1;
       }
       const githubToken = flags["githubToken"];
       if (!githubToken || typeof githubToken !== "string") {
-        console.error(
-          `Error: missing valid githubToken argument.\n${checkWorkflowStatusUsageDoc}`,
-        );
+        console.error(`Error: missing valid githubToken argument.\n${checkWorkflowStatusUsageDoc}`);
         return 1;
       }
       let retry: number | undefined = undefined;
@@ -146,33 +138,31 @@ export async function main(argv = process.argv) {
         branches.split(","),
         { retry: retry, notify: notify },
       );
-      if(flags["json"]){
+      if (flags["json"]) {
         console.log(JSON.stringify(res));
       } else {
         console.log(res.output);
       }
 
-      if (res.status === 'failure') {
+      if (res.status === "failure") {
         return 1;
       } else {
         return 0;
       }
-    }else if (positionals[0] === "getCompatiblePlugins"){
+    } else if (positionals[0] === "getCompatiblePlugins") {
       const kestraVersionArg = positionals[1];
       if (!kestraVersionArg) {
-        console.error(
-          `Error: missing kestra version argument.\n${getCompatiblePluginsUsageDoc}`,
-        );
+        console.error(`Error: missing kestra version argument.\n${getCompatiblePluginsUsageDoc}`);
         return 1;
       }
-      const compatiblePlugins = await getCompatiblePlugins(
-        kestraVersionArg,
-        {
-          workingDir: getDefaultWorkingDir()
-        }
-      );
-      // Print to stdout so it can be piped in CI or viewed in terminal
-      console.log(compatiblePlugins.out);
+      const compatiblePlugins = await getCompatiblePlugins(kestraVersionArg, {
+        workingDir: getDefaultWorkingDir(),
+      });
+      if (flags["json"]) {
+        console.log(JSON.stringify(compatiblePlugins));
+      } else {
+        console.log(compatiblePlugins.output);
+      }
       return 0;
     }
 
