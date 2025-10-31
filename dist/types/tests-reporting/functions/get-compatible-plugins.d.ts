@@ -2,7 +2,8 @@ import { WorkingDir } from "../../utilities/working-dir";
 export declare function getCompatiblePlugins(kestraVersion: string, opts: {
     workingDir: WorkingDir;
 }): Promise<{
-    out: string;
+    output: string;
+    plugins: string[];
 }>;
 export interface APILatestCompatiblePlugin {
     groupId: string;
