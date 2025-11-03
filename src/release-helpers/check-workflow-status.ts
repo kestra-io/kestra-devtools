@@ -8,8 +8,8 @@ export async function checkWorkflowStatus(
   workflowId: string,
   branches: string[],
   options?: {
-    retry: number | undefined;
-    notify: boolean | undefined;
+    retry?: number | undefined;
+    notify?: boolean | undefined;
   },
 ): Promise<{
   output: string;
