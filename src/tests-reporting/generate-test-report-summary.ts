@@ -41,7 +41,7 @@ export async function generateTestReportSummary(
     });
     
     // INTEGRATION
-    const integrationTestPattern = options?.testReportsLocationPattern ?? "**/build/test-results/integrationTest/*.xml";
+    const integrationTestPattern = options?.integrationTestReportsLocationPattern ?? "**/build/test-results/integrationTest/*.xml";
 
     // Find matching report files under the provided working directory
     const junitXmlIntegrationTestReportsFilenames = await fg.async(integrationTestPattern, {
@@ -62,7 +62,7 @@ export async function generateTestReportSummary(
     });
     
     // FLAKY TEST
-    const flakyTestPattern = options?.testReportsLocationPattern ?? "**/build/test-results/flakyTest/*.xml";
+    const flakyTestPattern = options?.flakyTestReportsLocationPattern ?? "**/build/test-results/flakyTest/*.xml";
 
     // Find matching report files under the provided working directory
     const junitXmlFlakyTestReportsFilenames = await fg.async(flakyTestPattern, {
@@ -86,11 +86,12 @@ export async function generateTestReportSummary(
     let markdownContent =  "## Tests report quick summary:" + summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors}).markdownContent;
 
     if (moduleIntegrationTestReports && moduleIntegrationTestReports.length > 0) {
-        markdownContent = markdownContent + "\n\n---\n\n## Integration tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
+        markdownContent = markdownContent + "\n\n---\n\n## Integration tests report quick summary:" + summarizeJunitReport(moduleIntegrationTestReports, {onlyErrors: onlyErrors}).markdownContent;
     }
     
-    if (!moduleFlakyTestReports || moduleFlakyTestReports.length === 0) {
-        return markdownContent
+    if (moduleFlakyTestReports && moduleFlakyTestReports.length > 0) {
+        markdownContent = markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
     }
-    return markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    return markdownContent
+
 }
