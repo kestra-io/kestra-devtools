@@ -168,7 +168,7 @@ Example: ${qp}`,su="kestra-devtools checkWorkflowStatus main-build.yml --repo=ke
 
 Example: ${su}`,vb="kestra-devtools getCompatiblePlugins v1.0.0",xd=`Usage: kestra-devtools getCompatiblePlugins [kestraVersion]
 
-Example: ${su}`,Hd=`kestra-devtools version: 1.0.30
+Example: ${su}`,Hd=`kestra-devtools version: 1.0.31
 
 A CLI utility to help with various development tasks
 
@@ -193,4 +193,4 @@ ${ns}`),1;const n=t.githubToken;if(!n||typeof n!="string")return console.error(`
 ${ns}`),1;let o;if(t.retry&&(o=parseInt(t.retry,10),!o))return console.error(`Error: invalid retry argument: ${o} .
 ${ns}`),1;let i;t.notify&&(i=!0);let a;t["require-success"]&&(a=!0);const u=await Kw(n,"kestra-io",A,s,r.split(","),{retry:o,notify:i});return t.json?console.log(JSON.stringify(u)):console.log(u.output),a&&u.status!=="success"||u.status==="failure"?1:0}async function Fb(e,t){if(t.help||t.h)return console.log(`${Md}`),0;const s=e[1];if(!s)return console.error(`Error: missing working directory argument.
 ${Md}`),1;const A=!!t.ci,r=zd(s),n=await vB(r,{onlyErrors:!!t["only-errors"],githubContext:A?Vy():void 0});return console.log(n),0}async function Nb(e,t){if(t.help||t.h)return console.log(`${xd}`),0;const s=e[1];if(!s)return console.error(`Error: missing kestra version argument.
-${xd}`),1;const A=await Sb(s,{workingDir:zp()});return t.json?console.log(JSON.stringify(A)):console.log(A.output),0}async function Ub(e=process.argv){const{flags:t,positionals:s}=Db(e);return s[0]==="generateTestReportSummary"?await Fb(s,t):s[0]==="checkWorkflowStatus"?await _b(s,t):s[0]==="getCompatiblePlugins"?await Nb(s,t):t.h||t.help?(console.log(Hd),0):t.v||t.version?(console.log("kestra-devtools version: 1.0.30"),0):(console.log(Hd),0)}Ub().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
+${xd}`),1;const A=await Sb(s,{workingDir:zp()});return t.json?console.log(JSON.stringify(A)):console.log(A.output),0}async function Ub(e=process.argv){const{flags:t,positionals:s}=Db(e);return s[0]==="generateTestReportSummary"?await Fb(s,t):s[0]==="checkWorkflowStatus"?await _b(s,t):s[0]==="getCompatiblePlugins"?await Nb(s,t):t.h||t.help?(console.log(Hd),0):t.v||t.version?(console.log("kestra-devtools version: 1.0.31"),0):(console.log(Hd),0)}Ub().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
