@@ -16,6 +16,7 @@ export async function generateTestReportSummary(
         onlyErrors?: boolean;
         testReportsLocationPattern?: "**/build/test-results/test/*.xml";
         flakyTestReportsLocationPattern?: "**/build/test-results/flakyTest/*.xml";
+        integrationTestReportsLocationPattern?: "**/build/test-results/integrationTest/*.xml";
     },
 ): Promise<MarkdownString> {
     const onlyErrors = options?.onlyErrors ?? false;
@@ -38,7 +39,29 @@ export async function generateTestReportSummary(
             projectReport: parseJunitModuleReport(content),
         };
     });
+    
+    // INTEGRATION
+    const integrationTestPattern = options?.testReportsLocationPattern ?? "**/build/test-results/integrationTest/*.xml";
 
+    // Find matching report files under the provided working directory
+    const junitXmlIntegrationTestReportsFilenames = await fg.async(integrationTestPattern, {
+        cwd: workingDir,
+        absolute: true,
+        onlyFiles: true,
+        dot: true,
+        followSymbolicLinks: true,
+    });
+
+    // Parse each JUnit report into a module-level structure
+    const moduleIntegrationTestReports: TestReport[] = junitXmlIntegrationTestReportsFilenames.map((file) => {
+        const content = fs.readFileSync(file, "utf-8");
+        return {
+            projectName: getJavaProjectNameFromBuildAbsolutePath(file),
+            projectReport: parseJunitModuleReport(content),
+        };
+    });
+    
+    // FLAKY TEST
     const flakyTestPattern = options?.testReportsLocationPattern ?? "**/build/test-results/flakyTest/*.xml";
 
     // Find matching report files under the provided working directory
@@ -60,10 +83,14 @@ export async function generateTestReportSummary(
     });
 
     // Summarize all parsed reports into a single Markdown string
-    const markdownContent =  "## Tests report quick summary:" + summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    let markdownContent =  "## Tests report quick summary:" + summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors}).markdownContent;
 
+    if (moduleIntegrationTestReports && moduleIntegrationTestReports.length > 0) {
+        markdownContent = markdownContent + "\n\n---\n\n## Integration tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    }
+    
     if (!moduleFlakyTestReports || moduleFlakyTestReports.length === 0) {
         return markdownContent
     }
-    return  markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    return markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
 }
