@@ -10,4 +10,7 @@ export declare function generateTestReportSummary(workingDir: WorkingDir, option
     testReportsLocationPattern?: "**/build/test-results/test/*.xml";
     flakyTestReportsLocationPattern?: "**/build/test-results/flakyTest/*.xml";
     integrationTestReportsLocationPattern?: "**/build/test-results/integrationTest/*.xml";
-}): Promise<MarkdownString>;
+}): Promise<{
+    output: MarkdownString;
+    status: 'success' | 'failure';
+}>;

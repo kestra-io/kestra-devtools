@@ -7,4 +7,7 @@ export declare function exportTestReportSummary(workingDir: WorkingDir, options?
         repo: string;
         prNumber: number;
     };
-}): Promise<string>;
+}): Promise<{
+    output: string;
+    status: 'success' | 'failure';
+}>;

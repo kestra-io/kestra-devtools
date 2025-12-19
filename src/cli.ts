@@ -36,6 +36,8 @@ const generateTestReportSummaryExample = `kestra-devtools generateTestReportSumm
 const generateTestReportSummaryUsageDoc =
   `Usage: kestra-devtools generateTestReportSummary [absolute-path]` +
   `\n\t--only-errors to only output error and their logs` +
+  `\n\t--ci to add a comment in a github PR` +
+  `\n\t--fail-on-error exit 1 at the end when there is failed tests` +
   `\n\nExample: ${generateTestReportSummaryExample}`;
 
 const checkWorkflowStatusExample = `kestra-devtools checkWorkflowStatus main-build.yml --repo=kestra-ee --branches=releases/v0.22.x,releases/v0.23.x --githubToken=$GH_TOKEN`;
@@ -150,14 +152,19 @@ async function generateTestReportSummaryCmd(positionals: string[], flags: Record
     return 1;
   }
   const ci = Boolean(flags["ci"]);
+  const failOnError = Boolean(flags["fail-on-error"]);
   const workingDir = validateWorkingDir(dirArg);
   const summary = await exportTestReportSummary(workingDir, {
     onlyErrors: Boolean(flags["only-errors"]),
     githubContext: ci ? getPRContext() : undefined,
   });
   // Print to stdout so it can be piped in CI or viewed in terminal
-  console.log(summary);
-  return 0;
+  console.log(summary.output);
+  if(failOnError && summary.status === 'failure'){
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 async function getCompatiblePluginsCmd(positionals: string[], flags: Record<string, string | boolean>) {

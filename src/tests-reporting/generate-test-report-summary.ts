@@ -18,7 +18,7 @@ export async function generateTestReportSummary(
         flakyTestReportsLocationPattern?: "**/build/test-results/flakyTest/*.xml";
         integrationTestReportsLocationPattern?: "**/build/test-results/integrationTest/*.xml";
     },
-): Promise<MarkdownString> {
+): Promise<{output: MarkdownString, status: 'success' | 'failure'}> {
     const onlyErrors = options?.onlyErrors ?? false;
     const testPattern = options?.testReportsLocationPattern ?? "**/build/test-results/test/*.xml";
 
@@ -83,7 +83,8 @@ export async function generateTestReportSummary(
     });
 
     // Summarize all parsed reports into a single Markdown string
-    let markdownContent =  "## Tests report quick summary:" + summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors}).markdownContent;
+    const testReport = summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors});
+    let markdownContent =  "## Tests report quick summary:" + testReport.markdownContent;
 
     if (moduleIntegrationTestReports && moduleIntegrationTestReports.length > 0) {
         markdownContent = markdownContent + "\n\n---\n\n## Integration tests report quick summary:" + summarizeJunitReport(moduleIntegrationTestReports, {onlyErrors: onlyErrors}).markdownContent;
@@ -92,6 +93,5 @@ export async function generateTestReportSummary(
     if (moduleFlakyTestReports && moduleFlakyTestReports.length > 0) {
         markdownContent = markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
     }
-    return markdownContent
-
+    return {output: markdownContent, status: testReport.hasErrors ? 'failure' : 'success'}
 }
