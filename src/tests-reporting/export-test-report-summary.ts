@@ -10,9 +10,9 @@ export async function exportTestReportSummary(workingDir: WorkingDir, options?: 
     const report = await generateTestReportSummary(workingDir, {onlyErrors: options?.onlyErrors})
     if (options?.githubContext) {
         assert.ok(options.githubContext.token, "github token is mandatory");
-        assert.ok(options.githubContext.owner);
-        assert.ok(options.githubContext.repo);
-        assert.ok(options.githubContext.prNumber);
+        assert.ok(options.githubContext.owner, "github owner is mandatory");
+        assert.ok(options.githubContext.repo, "github repo is mandatory");
+        assert.ok(options.githubContext.prNumber, "github prNumber is mandatory");
 
         await commentPR(options.githubContext.token, options.githubContext.owner, options.githubContext.repo, options.githubContext.prNumber, report);
     }

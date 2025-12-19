@@ -1,3 +1,4 @@
+export declare const GITHUB_PR_COMMENT_MAX_CHARACTERS = 65536;
 export declare function commentPR(githubToken: string, owner: string, repo: string, prNumber: number, content: string): Promise<void>;
 export declare function listWorkflowRuns(githubToken: string, owner: string, repo: string, workflowId: string, branch: string): Promise<{
     runId: number;
