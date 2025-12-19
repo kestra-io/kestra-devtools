@@ -158,11 +158,12 @@ async function generateTestReportSummaryCmd(positionals: string[], flags: Record
     onlyErrors: Boolean(flags["only-errors"]),
     githubContext: ci ? getPRContext() : undefined,
   });
-  // Print to stdout so it can be piped in CI or viewed in terminal
-  console.log(summary.output);
+  // Print to stdout/stderr so it can be piped in CI or viewed in terminal
   if(failOnError && summary.status === 'failure'){
+    console.error(summary.output);
     return 1;
   } else {
+    console.log(summary.output);
     return 0;
   }
 }
