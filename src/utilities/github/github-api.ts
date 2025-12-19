@@ -3,6 +3,8 @@ import { findComment } from "./github-comment-issue-api";
 
 const kestraDevtoolCommentId = "comment_generated_with_https://github.com/kestra-io/kestra-devtools";
 
+export const GITHUB_PR_COMMENT_MAX_CHARACTERS = 65536;
+
 export async function commentPR(
   githubToken: string,
   owner: string,
@@ -14,6 +16,10 @@ export async function commentPR(
 
   // add a hidden id so we are able to search this comment
   content = `<!-- ${kestraDevtoolCommentId} -->\n${content}`;
+  if(content.length >= GITHUB_PR_COMMENT_MAX_CHARACTERS){
+    const trimFootNote = `\n\n---\n\`\`\`\n</details>\n\n> [!CAUTION]\n> content was trimmed to not exceed Github max number of characters: ${GITHUB_PR_COMMENT_MAX_CHARACTERS} [^1].`;
+    content = content.substring(0, GITHUB_PR_COMMENT_MAX_CHARACTERS - trimFootNote.length) + trimFootNote;
+  }
   const previousComment = await findComment(githubToken, owner, repo, {
     issueNumber: prNumber,
     bodyIncludes: kestraDevtoolCommentId,
