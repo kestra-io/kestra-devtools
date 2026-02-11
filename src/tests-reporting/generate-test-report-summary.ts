@@ -3,6 +3,7 @@ import {MarkdownString, summarizeJunitReport, TestReport,} from "./functions/sum
 import {parseJunitModuleReport} from "./functions/parse-junit-module-report";
 import fg from "fast-glob";
 import fs from "fs";
+import path from "path";
 import {getJavaProjectNameFromBuildAbsolutePath} from "./functions/file-path-utils";
 
 /**
@@ -86,6 +87,11 @@ export async function generateTestReportSummary(
     const testReport = summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors});
     let markdownContent =  "## Tests report quick summary:" + testReport.markdownContent;
 
+    const develocityScanUri = getDevelocityScanUri(workingDir);
+    if (develocityScanUri) {
+        markdownContent = markdownContent + `\n\n---\n\n## Develocity build scan:\n${develocityScanUri}`;
+    }
+
     if (moduleIntegrationTestReports && moduleIntegrationTestReports.length > 0) {
         markdownContent = markdownContent + "\n\n---\n\n## Integration tests report quick summary:" + summarizeJunitReport(moduleIntegrationTestReports, {onlyErrors: onlyErrors}).markdownContent;
     }
@@ -94,4 +100,29 @@ export async function generateTestReportSummary(
         markdownContent = markdownContent + "\n\n---\n\n## Flaky tests report quick summary:" + summarizeJunitReport(moduleFlakyTestReports, {onlyErrors: onlyErrors}).markdownContent;
     }
     return {output: markdownContent, status: testReport.hasErrors ? 'failure' : 'success'}
+}
+
+function getDevelocityScanUri(workingDir: WorkingDir): string | undefined {
+    const scanOutputPath = path.join(workingDir, "develocity-scan-output.ndjson");
+    if (!fs.existsSync(scanOutputPath)) {
+        return undefined;
+    }
+
+    const content = fs.readFileSync(scanOutputPath, "utf-8");
+    const lines = content.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    for (const line of lines) {
+        try {
+            const payload = JSON.parse(line);
+            const taskNames = payload?.taskNames;
+            const hasCheckTask =
+                Array.isArray(taskNames) && taskNames.some((task: string) => task.includes("check"));
+            if (hasCheckTask && typeof payload.buildScanUri === "string" && payload.buildScanUri.length > 0) {
+                return payload.buildScanUri;
+            }
+        } catch {
+            continue;
+        }
+    }
+
+    return undefined;
 }
