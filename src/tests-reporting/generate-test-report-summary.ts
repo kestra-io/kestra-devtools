@@ -89,7 +89,7 @@ export async function generateTestReportSummary(
 
     const develocityScanUri = getDevelocityScanUri(workingDir);
     if (develocityScanUri) {
-        markdownContent = markdownContent + `\n\n---\n\n## Develocity build scan:\n${develocityScanUri}`;
+        markdownContent = markdownContent + `\n\n---\n\n Develocity build scan: ${develocityScanUri}`;
     }
 
     if (moduleIntegrationTestReports && moduleIntegrationTestReports.length > 0) {
