@@ -1,6 +1,6 @@
 {
   "name": "@kestra-io/kestra-devtools",
-  "version": "1.0.35",
+  "version": "1.0.36",
   "description": "a CLI tool to run various dev tasks to build, test, release Kestra",
   "bin": {
     "kestra-devtools": "dist/kestra-devtools.cjs"
