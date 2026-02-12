@@ -78,8 +78,7 @@ ${t}
 
 ---
 
-## Develocity build scan:
-${C}`),a&&a.length>0&&(p=p+`
+ Develocity build scan: ${C}`),a&&a.length>0&&(p=p+`
 
 ---
 
@@ -182,7 +181,7 @@ Example: ${Jp}`,Au="kestra-devtools checkWorkflowStatus main-build.yml --repo=ke
 
 Example: ${Au}`,Fb="kestra-devtools getCompatiblePlugins v1.0.0",Hd=`Usage: kestra-devtools getCompatiblePlugins [kestraVersion]
 
-Example: ${Au}`,Yd=`kestra-devtools version: 1.0.36
+Example: ${Au}`,Yd=`kestra-devtools version: 1.0.37
 
 A CLI utility to help with various development tasks
 
@@ -207,4 +206,4 @@ ${ns}`),1;const n=t.githubToken;if(!n||typeof n!="string")return console.error(`
 ${ns}`),1;let o;if(t.retry&&(o=parseInt(t.retry,10),!o))return console.error(`Error: invalid retry argument: ${o} .
 ${ns}`),1;let i;t.notify&&(i=!0);let a;t["require-success"]&&(a=!0);const u=await Zw(n,"kestra-io",A,s,r.split(","),{retry:o,notify:i});return t.json?console.log(JSON.stringify(u)):console.log(u.output),a&&u.status!=="success"||u.status==="failure"?1:0}async function Ub(e,t){if(t.help||t.h)return console.log(`${xd}`),0;const s=e[1];if(!s)return console.error(`Error: missing working directory argument.
 ${xd}`),1;const A=!!t.ci,r=!!t["fail-on-error"],n=Zd(s),o=await FB(n,{onlyErrors:!!t["only-errors"],githubContext:A?$y():void 0});return r&&o.status==="failure"?(console.error(o.output),1):(console.log(o.output),0)}async function Lb(e,t){if(t.help||t.h)return console.log(`${Hd}`),0;const s=e[1];if(!s)return console.error(`Error: missing kestra version argument.
-${Hd}`),1;const A=await Db(s,{workingDir:Zp()});return t.json?console.log(JSON.stringify(A)):console.log(A.output),0}async function Gb(e=process.argv){const{flags:t,positionals:s}=_b(e);return s[0]==="generateTestReportSummary"?await Ub(s,t):s[0]==="checkWorkflowStatus"?await Nb(s,t):s[0]==="getCompatiblePlugins"?await Lb(s,t):t.h||t.help?(console.log(Yd),0):t.v||t.version?(console.log("kestra-devtools version: 1.0.36"),0):(console.log(Yd),0)}Gb().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
+${Hd}`),1;const A=await Db(s,{workingDir:Zp()});return t.json?console.log(JSON.stringify(A)):console.log(A.output),0}async function Gb(e=process.argv){const{flags:t,positionals:s}=_b(e);return s[0]==="generateTestReportSummary"?await Ub(s,t):s[0]==="checkWorkflowStatus"?await Nb(s,t):s[0]==="getCompatiblePlugins"?await Lb(s,t):t.h||t.help?(console.log(Yd),0):t.v||t.version?(console.log("kestra-devtools version: 1.0.37"),0):(console.log(Yd),0)}Gb().then(e=>process.exit(e)).catch(e=>{console.error(e),process.exit(1)});
