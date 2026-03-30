@@ -49,6 +49,7 @@ cd kestra-ee
 npx --yes @kestra-io/kestra-devtools generateTestReportSummary --only-errors $(pwd)
 ```
 
+
 ## develop locally this CLI
 ```
 npm i
