@@ -32,6 +32,7 @@ export function summarizeJunitReport(
   for (const report of mergedReports) {
     const project = report.projectName;
     const projectReport: JUnitModuleReport = report.projectReport;
+    if (projectReport.failures > 0 || projectReport.errors > 0) hasErrors = true;
     testReportQuickSummaryRows.push(
       `| ${escapePipe(report.projectName)} | ${escapePipe(mapStatusToEmoji(projectReport.status))} | ${escapePipe(projectReport.success)} | ${escapePipe(projectReport.skipped)} | ${projectReport.errors + projectReport.failures} |`,
     );
@@ -123,7 +124,9 @@ function mergeSameProjectReports(reports: TestReport[]): TestReport[] {
   }));
 }
 
-// recompute success/skip/error/failure counts and overall status from testcases
+// recompute success/skip/error/failure counts and overall status from suite-level attributes
+// (which are parsed directly from XML and are authoritative), not from testcase iteration
+// (which can undercount when test XML uses <flakyFailure>/<rerunFailure> elements)
 function computeModuleAggregates(moduleReport: JUnitModuleReport): void {
   let success = 0;
   let skipped = 0;
@@ -131,22 +134,10 @@ function computeModuleAggregates(moduleReport: JUnitModuleReport): void {
   let failures = 0;
 
   for (const suite of moduleReport.testsuites) {
-    for (const tc of suite.testcases) {
-      switch (tc.status) {
-        case "success":
-          success++;
-          break;
-        case "skipped":
-          skipped++;
-          break;
-        case "error":
-          errors++;
-          break;
-        case "failed":
-          failures++;
-          break;
-      }
-    }
+    failures += suite.failures;
+    errors += suite.errors;
+    skipped += suite.skipped;
+    success += suite.success;
   }
 
   const total = success + skipped + errors + failures;

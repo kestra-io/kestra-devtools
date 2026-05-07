@@ -159,4 +159,191 @@ describe("summarize-junit-report test", () => {
 
     expect(res.markdownContent).contain("No test report were found");
   });
+
+  it("summarizeJunitReport should detect failures when suite attributes say failures>0 but testcases show success", async () => {
+    // Simulates a suite-level failure (e.g. @BeforeAll crash) where Gradle writes
+    // failures="1" on <testsuite> but the testcase itself has no <failure> element.
+    const reports: TestReport[] = [
+      {
+        projectName: "jdbc-h2",
+        projectReport: {
+          errors: 0,
+          skipped: 0,
+          failures: 1,
+          success: 0,
+          status: "failed",
+          tests: 1,
+          time: 1,
+          suites: 1,
+          testsuites: [
+            {
+              name: "io.kestra.jdbc.SomeTest",
+              errors: 0,
+              skipped: 0,
+              failures: 1,
+              success: 0,
+              status: "failed",
+              tests: 1,
+              time: 1,
+              testcases: [
+                {
+                  // testcase parsed as success because tc.failure was falsy
+                  name: "shouldDoSomething()",
+                  classname: "io.kestra.jdbc.SomeTest",
+                  time: 1,
+                  status: "success",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ];
+
+    const res = summarizeJunitReport(reports, { onlyErrors: true });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("failed ❌");
+    expect(res.markdownContent).contain("jdbc-h2");
+  });
+
+  it("summarizeJunitReport should show failing test name and message in details when testcase is failed", async () => {
+    // Simulates a regular test failure (e.g. shouldResubmitTaskWhenWorkerIsStopped [1])
+    // where the XML has a <failure> element and the testcase status is "failed".
+    // Verifies that both the module-level detection AND the detail output work correctly.
+    const reports: TestReport[] = [
+      {
+        projectName: "jdbc-mysql",
+        projectReport: {
+          errors: 0,
+          skipped: 0,
+          failures: 1,
+          success: 1,
+          status: "failed",
+          tests: 2,
+          time: 9,
+          suites: 1,
+          testsuites: [
+            {
+              name: "io.kestra.runner.mysql.MysqlServiceLivenessCoordinatorTest",
+              errors: 0,
+              skipped: 0,
+              failures: 1,
+              success: 1,
+              status: "failed",
+              tests: 2,
+              time: 9,
+              testcases: [
+                {
+                  name: "shouldResubmitTaskWhenWorkerIsStopped(String) [1] workerGroupKey=workerGroupKey",
+                  classname: "io.kestra.runner.mysql.MysqlServiceLivenessCoordinatorTest",
+                  time: 3,
+                  status: "failed",
+                  message: "java.lang.AssertionError: Expecting actual not to be null",
+                  details: "at io.kestra.executor.AbstractServiceLivenessCoordinatorTest.shouldResubmitTaskWhenWorkerIsStopped(AbstractServiceLivenessCoordinatorTest.java:144)",
+                },
+                {
+                  name: "shouldResubmitTaskWhenWorkerIsStopped(String) [2] workerGroupKey=<null>",
+                  classname: "io.kestra.runner.mysql.MysqlServiceLivenessCoordinatorTest",
+                  time: 6,
+                  status: "success",
+                },
+              ],
+            },
+          ],
+        },
+      },
+    ];
+
+    const res = summarizeJunitReport(reports, { onlyErrors: true });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("failed ❌");
+    expect(res.markdownContent).contain("jdbc-mysql");
+    expect(res.markdownContent).contain("shouldResubmitTaskWhenWorkerIsStopped(String) [1] workerGroupKey=workerGroupKey");
+    expect(res.markdownContent).contain("java.lang.AssertionError: Expecting actual not to be null");
+    expect(res.markdownContent).contain("AbstractServiceLivenessCoordinatorTest.java:144");
+    expect(res.markdownContent).not.contain("shouldResubmitTaskWhenWorkerIsStopped(String) [2] workerGroupKey=<null>");
+  });
+
+  it("summarizeJunitReport per-module failure count should reflect suite attributes, not testcase iteration", async () => {
+    // Two XML files for the same project (outputPerTestCase=true produces one file per test).
+    // Both have suite.failures=1 but testcases show status:"success".
+    // After merging, the per-module row must show 2 failures, not 0.
+    const file1: TestReport = {
+      projectName: "jdbc-h2",
+      projectReport: {
+        errors: 0, skipped: 0, failures: 1, success: 0,
+        status: "failed", tests: 1, time: 1, suites: 1,
+        testsuites: [{
+          name: "io.kestra.jdbc.QueryFilterTest",
+          errors: 0, skipped: 0, failures: 1, success: 0,
+          status: "failed", tests: 1, time: 1,
+          testcases: [{ name: "shouldFilterByPrefix()", classname: "io.kestra.jdbc.QueryFilterTest", time: 1, status: "success" }],
+        }],
+      },
+    };
+    const file2: TestReport = {
+      projectName: "jdbc-h2",
+      projectReport: {
+        errors: 0, skipped: 0, failures: 1, success: 0,
+        status: "failed", tests: 1, time: 1, suites: 1,
+        testsuites: [{
+          name: "io.kestra.jdbc.QueryFilterTest",
+          errors: 0, skipped: 0, failures: 1, success: 0,
+          status: "failed", tests: 1, time: 1,
+          testcases: [{ name: "shouldFilterByExact()", classname: "io.kestra.jdbc.QueryFilterTest", time: 1, status: "success" }],
+        }],
+      },
+    };
+    const file3: TestReport = {
+      projectName: "jdbc-h2",
+      projectReport: {
+        errors: 0, skipped: 0, failures: 0, success: 1,
+        status: "success", tests: 1, time: 1, suites: 1,
+        testsuites: [{
+          name: "io.kestra.jdbc.QueryFilterTest",
+          errors: 0, skipped: 0, failures: 0, success: 1,
+          status: "success", tests: 1, time: 1,
+          testcases: [{ name: "shouldFilterByNamespace()", classname: "io.kestra.jdbc.QueryFilterTest", time: 1, status: "success" }],
+        }],
+      },
+    };
+
+    const res = summarizeJunitReport([file1, file2, file3], { onlyErrors: true });
+
+    expect(res.hasErrors).equal(true);
+    // Header total: failed: 2
+    expect(res.markdownContent).contain("failed: 2");
+    // Per-module row must show 2 in the Failed column, not 0
+    expect(res.markdownContent).toMatch(/jdbc-h2.*failed ❌/);
+  });
+
+  it("summarizeJunitReport hasErrors should be false when all suite attributes report 0 failures", async () => {
+    // when suite.failures=0 for all suites, hasErrors stays false
+    // even if we have many merged reports.
+    const reports: TestReport[] = [
+      {
+        projectName: "core",
+        projectReport: {
+          errors: 0, skipped: 1, failures: 0, success: 5,
+          status: "success", tests: 6, time: 2, suites: 1,
+          testsuites: [{
+            name: "io.kestra.core.SomeTest",
+            errors: 0, skipped: 1, failures: 0, success: 5,
+            status: "success", tests: 6, time: 2,
+            testcases: [
+              { name: "test1()", classname: "io.kestra.core.SomeTest", time: 1, status: "success" },
+              { name: "test2()", classname: "io.kestra.core.SomeTest", time: 1, status: "skipped" },
+            ],
+          }],
+        },
+      },
+    ];
+
+    const res = summarizeJunitReport(reports, { onlyErrors: true });
+
+    expect(res.hasErrors).equal(false);
+    expect(res.markdownContent).contain("success ✅");
+  });
 });
