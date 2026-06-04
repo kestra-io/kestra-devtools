@@ -1,10 +1,22 @@
 import {WorkingDir} from "../utilities/working-dir";
-import {MarkdownString, summarizeJunitReport, TestReport,} from "./functions/summarize-junit-report";
+import {MarkdownString, summarizeJunitReport, TestMetadata, TestReport,} from "./functions/summarize-junit-report";
 import {parseJunitModuleReport} from "./functions/parse-junit-module-report";
 import fg from "fast-glob";
 import fs from "fs";
 import path from "path";
 import {getJavaProjectNameFromBuildAbsolutePath} from "./functions/file-path-utils";
+
+function loadTestMetadata(workingDir: WorkingDir): TestMetadata | undefined {
+    const metadataPath = path.join(workingDir, "build", "test-metadata.json");
+    if (!fs.existsSync(metadataPath)) {
+        return undefined;
+    }
+    try {
+        return JSON.parse(fs.readFileSync(metadataPath, "utf-8")) as TestMetadata;
+    } catch {
+        return undefined;
+    }
+}
 
 /**
  * parse files located at 'testReportsLocationPattern' and generate a summary in Markdown
@@ -22,6 +34,7 @@ export async function generateTestReportSummary(
 ): Promise<{output: MarkdownString, status: 'success' | 'failure'}> {
     const onlyErrors = options?.onlyErrors ?? false;
     const testPattern = options?.testReportsLocationPattern ?? "**/build/test-results/test/*.xml";
+    const metadata = loadTestMetadata(workingDir);
 
     // Find matching report files under the provided working directory
     const junitXmlTestReportsFilenames = await fg.async(testPattern, {
@@ -84,7 +97,7 @@ export async function generateTestReportSummary(
     });
 
     // Summarize all parsed reports into a single Markdown string
-    const testReport = summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors});
+    const testReport = summarizeJunitReport(moduleTestReports, {onlyErrors: onlyErrors, metadata: metadata});
     let markdownContent =  "## Tests report quick summary:" + testReport.markdownContent;
 
     const develocityScanUri = getDevelocityScanUri(workingDir);

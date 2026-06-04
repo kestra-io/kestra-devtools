@@ -12,11 +12,23 @@ export interface TestReportSummary {
   markdownContent: MarkdownString;
 }
 
+export interface TestMetadataModule {
+  state: string;
+  hasTestSources: boolean;
+  hasXmlResults: boolean;
+}
+
+export interface TestMetadata {
+  modules: Record<string, TestMetadataModule>;
+  timeoutMinutes: number;
+}
+
 export function summarizeJunitReport(
   testReports: TestReport[],
-  options?: { onlyErrors: boolean; },
+  options?: { onlyErrors: boolean; metadata?: TestMetadata },
 ): TestReportSummary {
   const onlyErrors = options?.onlyErrors ?? false;
+  const metadata = options?.metadata;
 
   const testReportQuickSummaryRows: string[] = [];
   const testReportDetailsRows: string[] = [];
@@ -24,17 +36,50 @@ export function summarizeJunitReport(
   let hasErrors = false;
 
   let markdownContent = "";
+
+  // Detect missing modules (have test sources but no XML results)
+  const missingModules = detectMissingModules(metadata, testReports);
+  if (missingModules.length > 0) {
+    hasErrors = true;
+    const timeoutMin = metadata?.timeoutMinutes ?? 30;
+    const moduleLines = missingModules.map((m) => {
+      if (m.state === "FAILED") {
+        return `- \`${m.name}\` — test task **FAILED** (likely exceeded the ${timeoutMin}-minute timeout). Results for this module are **not included** in the report below.`;
+      }
+      return `- \`${m.name}\` — test task state: ${m.state}. No test results were produced.`;
+    });
+    markdownContent += `\n> ⚠️ **${missingModules.length} module(s) with tests produced no results — investigation required:**\n>\n${moduleLines.map(l => `> ${l}`).join("\n")}\n\n`;
+  }
+
   if (!testReports || testReports.length === 0) {
     return {hasErrors, markdownContent: markdownContent + '\nNo test report were found'};
   }
 
   const mergedReports = mergeSameProjectReports(testReports);
+
+  // Build cache stats from metadata
+  let cachedTests = 0;
+  let executedTests = 0;
+
   for (const report of mergedReports) {
     const project = report.projectName;
     const projectReport: JUnitModuleReport = report.projectReport;
     if (projectReport.failures > 0 || projectReport.errors > 0) hasErrors = true;
+
+    // Determine source (cached vs executed) from metadata
+    const moduleState = metadata?.modules?.[project]?.state;
+    const sourceIcon = moduleState === "FROM_CACHE" ? "📦" : "🔄";
+    if (moduleState === "FROM_CACHE") {
+      cachedTests += projectReport.tests;
+    } else {
+      executedTests += projectReport.tests;
+    }
+
+    const statusCol = metadata
+        ? `${escapePipe(mapStatusToEmoji(projectReport.status))} ${sourceIcon}`
+        : escapePipe(mapStatusToEmoji(projectReport.status));
     testReportQuickSummaryRows.push(
-      `| ${escapePipe(report.projectName)} | ${escapePipe(mapStatusToEmoji(projectReport.status))} | ${escapePipe(projectReport.success)} | ${escapePipe(projectReport.skipped)} | ${projectReport.errors + projectReport.failures} |`,
+      `| ${escapePipe(report.projectName)} | ${statusCol} | ${escapePipe(projectReport.success)} | ${escapePipe(projectReport.skipped)} | ${projectReport.errors + projectReport.failures} |`,
     );
 
     for (const testsuite of projectReport.testsuites) {
@@ -44,7 +89,6 @@ export function summarizeJunitReport(
         const failed = testcase.status === "failed" || testcase.status === "error";
         if (failed) hasErrors = true;
         if (onlyErrors) {
-          // then only print errors, and details like logs
           if (failed) {
             const message = testcase.message ?? "";
             const details = testcase.details ? "\n\n" + testcase.details : "";
@@ -71,7 +115,12 @@ export function summarizeJunitReport(
   const finalTestStatus = hasErrors ? 'failed' : 'success';
   markdownContent =
     markdownContent +
-    `\n${mapStatusToEmoji(finalTestStatus)} > tests: ${totalTests}, success: ${totalSuccess}, skipped: ${totalSkipped}, failed: ${totalErrors}\n`;
+    `\n${mapStatusToEmoji(finalTestStatus)} > tests: ${totalTests}, success: ${totalSuccess}, skipped: ${totalSkipped}, failed: ${totalErrors}`;
+
+  if (metadata && (cachedTests > 0 || executedTests > 0)) {
+    markdownContent += ` (🔄 ${executedTests} executed, 📦 ${cachedTests} from cache)`;
+  }
+  markdownContent += "\n";
 
   let tableMarkdown = `\n| Project | Status | Success | Skipped | Failed |\n|---|---|---|---|---|`;
   tableMarkdown = tableMarkdown + "\n" + [...testReportQuickSummaryRows].join("\n");
@@ -86,13 +135,31 @@ export function summarizeJunitReport(
   }
 
   if(finalTestStatus === 'success'){
-    // collapse it
     markdownContent = markdownContent + spoilerBlock('unfold for details', tableMarkdown);
   } else {
     markdownContent = markdownContent + tableMarkdown;
   }
 
   return { hasErrors, markdownContent };
+}
+
+function detectMissingModules(
+    metadata: TestMetadata | undefined,
+    testReports: TestReport[],
+): Array<{ name: string; state: string }> {
+  if (!metadata?.modules) return [];
+  const reportedProjects = new Set(
+      mergeSameProjectReports(testReports).map((r) => r.projectName),
+  );
+  const missing: Array<{ name: string; state: string }> = [];
+  for (const [name, mod] of Object.entries(metadata.modules)) {
+    if (mod.hasTestSources && !mod.hasXmlResults && !reportedProjects.has(name)) {
+      if (mod.state === "FAILED" || mod.state === "NOT_RUN") {
+        missing.push({ name, state: mod.state });
+      }
+    }
+  }
+  return missing;
 }
 
 // merge reports that share the same projectName by concatenating testsuites
