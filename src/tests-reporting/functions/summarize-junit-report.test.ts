@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { summarizeJunitReport, TestReport } from "./summarize-junit-report";
+import { summarizeJunitReport, TestMetadata, TestReport } from "./summarize-junit-report";
 
 describe("summarize-junit-report test", () => {
     const testReportsWithGreenTests: TestReport[] = [
@@ -345,5 +345,79 @@ describe("summarize-junit-report test", () => {
 
     expect(res.hasErrors).equal(false);
     expect(res.markdownContent).contain("success ✅");
+  });
+
+  it("should flag a FAILED module that timed out AFTER producing partial XML (green rows must not hide the failure)", async () => {
+    // The regression this guards: a module's test task times out after some test classes
+    // have already flushed their JUnit XML. Those rows are green and the module appears in
+    // the report, so the old detection (which only looked at modules with NO xml) ignored
+    // the FAILED state and the report said success. It must now be flagged as a failure.
+    const metadata: TestMetadata = {
+      timeoutMinutes: 30,
+      modules: {
+        "java-module-1": { state: "FAILED", hasTestSources: true, hasXmlResults: true },
+      },
+    };
+
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true, metadata });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("java-module-1");
+    expect(res.markdownContent).contain("partial");
+    expect(res.markdownContent).contain("30-minute");
+  });
+
+  it("should flag a FAILED module that produced no XML results at all (absent from the report)", async () => {
+    const metadata: TestMetadata = {
+      timeoutMinutes: 30,
+      modules: {
+        "java-module-1": { state: "SUCCESS", hasTestSources: true, hasXmlResults: true },
+        "webserver-ee": { state: "FAILED", hasTestSources: true, hasXmlResults: false },
+      },
+    };
+
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true, metadata });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("webserver-ee");
+    expect(res.markdownContent).contain("not included");
+    expect(res.markdownContent).contain("30-minute");
+  });
+
+  it("should flag a NOT_RUN module with test sources but no results", async () => {
+    const metadata: TestMetadata = {
+      timeoutMinutes: 30,
+      modules: {
+        "java-module-1": { state: "SUCCESS", hasTestSources: true, hasXmlResults: true },
+        "core-ee": { state: "NOT_RUN", hasTestSources: true, hasXmlResults: false },
+      },
+    };
+
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true, metadata });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("core-ee");
+    expect(res.markdownContent).contain("No test results were produced");
+  });
+
+  it("should NOT flag healthy modules when metadata reports them SUCCESS with results", async () => {
+    const metadata: TestMetadata = {
+      timeoutMinutes: 30,
+      modules: {
+        "java-module-1": { state: "SUCCESS", hasTestSources: true, hasXmlResults: true },
+      },
+    };
+
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true, metadata });
+
+    expect(res.hasErrors).equal(false);
+    expect(res.markdownContent).not.contain("investigation");
+  });
+
+  it("should not flag anything when no metadata is provided (backwards compatible)", async () => {
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true });
+
+    expect(res.hasErrors).equal(false);
+    expect(res.markdownContent).not.contain("investigation");
   });
 });
