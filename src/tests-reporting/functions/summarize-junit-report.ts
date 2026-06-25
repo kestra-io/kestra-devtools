@@ -37,18 +37,23 @@ export function summarizeJunitReport(
 
   let markdownContent = "";
 
-  // Detect missing modules (have test sources but no XML results)
-  const missingModules = detectMissingModules(metadata, testReports);
-  if (missingModules.length > 0) {
+  // Detect modules whose test task did not complete cleanly (no results, or FAILED with
+  // only partial results — e.g. a timeout). These must surface even when every XML row is
+  // green, otherwise a timed-out module is silently reported as success.
+  const problematicModules = detectProblematicModules(metadata, testReports);
+  if (problematicModules.length > 0) {
     hasErrors = true;
     const timeoutMin = metadata?.timeoutMinutes ?? 30;
-    const moduleLines = missingModules.map((m) => {
+    const moduleLines = problematicModules.map((m) => {
+      if (m.hasPartialResults) {
+        return `- \`${m.name}\` — test task **FAILED** (likely exceeded the ${timeoutMin}-minute timeout). The results shown below for this module are **partial** and may not reflect every test.`;
+      }
       if (m.state === "FAILED") {
         return `- \`${m.name}\` — test task **FAILED** (likely exceeded the ${timeoutMin}-minute timeout). Results for this module are **not included** in the report below.`;
       }
       return `- \`${m.name}\` — test task state: ${m.state}. No test results were produced.`;
     });
-    markdownContent += `\n> ⚠️ **${missingModules.length} module(s) with tests produced no results — investigation required:**\n>\n${moduleLines.map(l => `> ${l}`).join("\n")}\n\n`;
+    markdownContent += `\n> ⚠️ **${problematicModules.length} module(s) need investigation (test task failed or produced no results):**\n>\n${moduleLines.map(l => `> ${l}`).join("\n")}\n\n`;
   }
 
   if (!testReports || testReports.length === 0) {
@@ -143,23 +148,41 @@ export function summarizeJunitReport(
   return { hasErrors, markdownContent };
 }
 
-function detectMissingModules(
+interface ProblematicModule {
+  name: string;
+  state: string;
+  // true when the module DID produce (partial) XML results that are included in the
+  // report below, despite its test task having FAILED — e.g. a timeout that killed the
+  // JVM mid-suite after some test classes had already flushed their XML. The results are
+  // present but incomplete, so we still flag the module instead of trusting the green rows.
+  hasPartialResults: boolean;
+}
+
+// Detect modules whose test task did not complete cleanly, using the per-module states
+// from build/test-metadata.json. Two distinct failure shapes are surfaced:
+//  1. No results at all — module has test sources but produced no XML (state FAILED/NOT_RUN).
+//     The whole module is absent from the report below.
+//  2. Partial results — module is in the report (has XML) but its test task FAILED. This is
+//     the common timeout-after-partial-flush case: the green rows below under-report reality.
+function detectProblematicModules(
     metadata: TestMetadata | undefined,
     testReports: TestReport[],
-): Array<{ name: string; state: string }> {
+): ProblematicModule[] {
   if (!metadata?.modules) return [];
   const reportedProjects = new Set(
       mergeSameProjectReports(testReports).map((r) => r.projectName),
   );
-  const missing: Array<{ name: string; state: string }> = [];
+  const problematic: ProblematicModule[] = [];
   for (const [name, mod] of Object.entries(metadata.modules)) {
-    if (mod.hasTestSources && !mod.hasXmlResults && !reportedProjects.has(name)) {
-      if (mod.state === "FAILED" || mod.state === "NOT_RUN") {
-        missing.push({ name, state: mod.state });
-      }
+    if (!mod.hasTestSources) continue;
+    const isAbsent = !mod.hasXmlResults && !reportedProjects.has(name);
+    if (isAbsent && (mod.state === "FAILED" || mod.state === "NOT_RUN")) {
+      problematic.push({ name, state: mod.state, hasPartialResults: false });
+    } else if (mod.state === "FAILED" && reportedProjects.has(name)) {
+      problematic.push({ name, state: mod.state, hasPartialResults: true });
     }
   }
-  return missing;
+  return problematic;
 }
 
 // merge reports that share the same projectName by concatenating testsuites
