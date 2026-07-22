@@ -16,6 +16,9 @@ export interface TestMetadataModule {
   state: string;
   hasTestSources: boolean;
   hasXmlResults: boolean;
+  // Per-module test-task timeout (minutes), e.g. some modules run a longer suite than others.
+  // Falls back to the top-level TestMetadata.timeoutMinutes when absent (older producers).
+  timeoutMinutes?: number;
 }
 
 export interface TestMetadata {
@@ -43,13 +46,15 @@ export function summarizeJunitReport(
   const problematicModules = detectProblematicModules(metadata, testReports);
   if (problematicModules.length > 0) {
     hasErrors = true;
-    const timeoutMin = metadata?.timeoutMinutes ?? 30;
     const moduleLines = problematicModules.map((m) => {
+      // Per-module timeout when the producer reports one (e.g. webserver-ee runs longer than
+      // the default), falling back to the top-level value for older producers.
+      const timeoutMin = metadata?.modules?.[m.name]?.timeoutMinutes ?? metadata?.timeoutMinutes ?? 30;
       if (m.hasPartialResults) {
-        return `- \`${m.name}\` — test task **FAILED** (likely exceeded the ${timeoutMin}-minute timeout). The results shown below for this module are **partial** and may not reflect every test.`;
+        return `- \`${m.name}\` — test task **FAILED** and produced no complete results (JVM terminated — timeout ≥ ${timeoutMin}m, out-of-memory, or runner crash). The results shown below for this module are **partial** and may not reflect every test.`;
       }
       if (m.state === "FAILED") {
-        return `- \`${m.name}\` — test task **FAILED** (likely exceeded the ${timeoutMin}-minute timeout). Results for this module are **not included** in the report below.`;
+        return `- \`${m.name}\` — test task **FAILED** and produced no results (JVM terminated — timeout ≥ ${timeoutMin}m, out-of-memory, or runner crash). Results for this module are **not included** in the report below.`;
       }
       return `- \`${m.name}\` — test task state: ${m.state}. No test results were produced.`;
     });
