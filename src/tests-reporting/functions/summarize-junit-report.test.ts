@@ -364,7 +364,7 @@ describe("summarize-junit-report test", () => {
     expect(res.hasErrors).equal(true);
     expect(res.markdownContent).contain("java-module-1");
     expect(res.markdownContent).contain("partial");
-    expect(res.markdownContent).contain("30-minute");
+    expect(res.markdownContent).contain("timeout ≥ 30m");
   });
 
   it("should flag a FAILED module that produced no XML results at all (absent from the report)", async () => {
@@ -381,7 +381,27 @@ describe("summarize-junit-report test", () => {
     expect(res.hasErrors).equal(true);
     expect(res.markdownContent).contain("webserver-ee");
     expect(res.markdownContent).contain("not included");
-    expect(res.markdownContent).contain("30-minute");
+    expect(res.markdownContent).contain("timeout ≥ 30m");
+  });
+
+  it("should use a module's own timeoutMinutes instead of the top-level fallback", async () => {
+    // webserver-ee runs a longer suite than other modules and reports its own 45-minute
+    // timeout in metadata, distinct from the top-level (default) 30-minute value used by
+    // every other module. The report must reflect the module-specific value, not the global one.
+    const metadata: TestMetadata = {
+      timeoutMinutes: 30,
+      modules: {
+        "java-module-1": { state: "SUCCESS", hasTestSources: true, hasXmlResults: true },
+        "webserver-ee": { state: "FAILED", hasTestSources: true, hasXmlResults: false, timeoutMinutes: 45 },
+      },
+    };
+
+    const res = summarizeJunitReport(testReportsWithGreenTests, { onlyErrors: true, metadata });
+
+    expect(res.hasErrors).equal(true);
+    expect(res.markdownContent).contain("webserver-ee");
+    expect(res.markdownContent).contain("timeout ≥ 45m");
+    expect(res.markdownContent).not.contain("timeout ≥ 30m");
   });
 
   it("should flag a NOT_RUN module with test sources but no results", async () => {
