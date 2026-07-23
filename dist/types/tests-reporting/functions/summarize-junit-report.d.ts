@@ -12,6 +12,7 @@ export interface TestMetadataModule {
     state: string;
     hasTestSources: boolean;
     hasXmlResults: boolean;
+    timeoutMinutes?: number;
 }
 export interface TestMetadata {
     modules: Record<string, TestMetadataModule>;
