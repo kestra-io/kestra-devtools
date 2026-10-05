@@ -38,7 +38,7 @@ export async function checkWorkflowStatus(
         if (options.retry > 1) {
           throw Error("multiple retry not handled yet");
         }
-        if (options.retry === 1) {
+        if (options.retry === 1 && workflowRes.runId !== undefined) {
           strOutput = strOutput.concat(
             `\n\t♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️\n\t\t retrying ${branch} workflow\n\t♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️♻️\n`,
           );
