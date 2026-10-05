@@ -46,7 +46,8 @@ export async function checkWorkflowStatus(
           triggeredRetries.push({ branch: branch });
         }
       }
-    } else if(workflowRes.status === 'in_progress'){
+    } else if(workflowRes.status === 'in_progress' || workflowRes.status === 'not_found'){
+        // a run that is not found yet may simply not have been created yet
         anyStillRunning = true;
     }
   }
@@ -62,6 +63,9 @@ function statusToIcon(status: string): string {
   }
   if (status === "in_progress") {
     return `${status} ⏳`;
+  }
+  if (status === "not_found") {
+    return `${status} 🔍`;
   }
   return status;
 }

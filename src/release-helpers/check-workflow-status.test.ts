@@ -34,6 +34,15 @@ const runningWorkflowRunFixture = {
   url: "https://github.com/kestra-io/kestra-ee/actions/runs/18093664321",
 };
 
+const notFoundWorkflowRunFixture = {
+  runId: undefined,
+  name: null,
+  commitText: undefined,
+  status: "not_found",
+  runStartDate: undefined,
+  url: undefined,
+};
+
 describe("check-workflow-status test", () => {
   it("check ok for workflow in success", async () => {
     // Arrange: mock the internal call that fetches workflow runs
@@ -166,5 +175,26 @@ describe("check-workflow-status test", () => {
     expect(res.output).toBeDefined();
     expect(res.output).toContain("branch1running > in_progress");
     expect(res.triggeredRetries).length(0);
+  });
+  it("check reports in_progress, not a crash, when no run is found for a branch", async () => {
+    const listWorkflowRunsMock = listWorkflowRuns as unknown as Mock;
+    listWorkflowRunsMock
+      .mockResolvedValueOnce(successWorkflowRunFixture)
+      .mockResolvedValueOnce(notFoundWorkflowRunFixture);
+    const reRunWorkflowMock = reRunWorkflow as unknown as Mock;
+    reRunWorkflowMock.mockClear();
+
+    const res = await checkWorkflowStatus(
+      "fake-token",
+      "kestra-io",
+      "kestra-ee",
+      "main-build.yml",
+      ["branch1", "branch2notfound"],
+      { retry: 1 },
+    );
+
+    expect(res.output).toContain("branch2notfound > not_found");
+    expect(res.status).toEqual('in_progress');
+    expect(reRunWorkflowMock).not.toHaveBeenCalled();
   });
 });
