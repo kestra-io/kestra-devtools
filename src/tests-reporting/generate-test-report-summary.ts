@@ -1,7 +1,7 @@
 import {WorkingDir} from "../utilities/working-dir";
 import {MarkdownString, summarizeJunitReport, TestMetadata, TestReport,} from "./functions/summarize-junit-report";
 import {parseJunitModuleReport} from "./functions/parse-junit-module-report";
-import fg from "fast-glob";
+import {glob} from "tinyglobby";
 import fs from "fs";
 import path from "path";
 import {getJavaProjectNameFromBuildAbsolutePath} from "./functions/file-path-utils";
@@ -37,12 +37,13 @@ export async function generateTestReportSummary(
     const metadata = loadTestMetadata(workingDir);
 
     // Find matching report files under the provided working directory
-    const junitXmlTestReportsFilenames = await fg.async(testPattern, {
+    const junitXmlTestReportsFilenames = await glob(testPattern, {
         cwd: workingDir,
         absolute: true,
         onlyFiles: true,
         dot: true,
         followSymbolicLinks: true,
+        expandDirectories: false,
     });
 
     // Parse each JUnit report into a module-level structure
@@ -58,12 +59,13 @@ export async function generateTestReportSummary(
     const integrationTestPattern = options?.integrationTestReportsLocationPattern ?? "**/build/test-results/integrationTest/*.xml";
 
     // Find matching report files under the provided working directory
-    const junitXmlIntegrationTestReportsFilenames = await fg.async(integrationTestPattern, {
+    const junitXmlIntegrationTestReportsFilenames = await glob(integrationTestPattern, {
         cwd: workingDir,
         absolute: true,
         onlyFiles: true,
         dot: true,
         followSymbolicLinks: true,
+        expandDirectories: false,
     });
 
     // Parse each JUnit report into a module-level structure
@@ -79,12 +81,13 @@ export async function generateTestReportSummary(
     const flakyTestPattern = options?.flakyTestReportsLocationPattern ?? "**/build/test-results/flakyTest/*.xml";
 
     // Find matching report files under the provided working directory
-    const junitXmlFlakyTestReportsFilenames = await fg.async(flakyTestPattern, {
+    const junitXmlFlakyTestReportsFilenames = await glob(flakyTestPattern, {
         cwd: workingDir,
         absolute: true,
         onlyFiles: true,
         dot: true,
         followSymbolicLinks: true,
+        expandDirectories: false,
     });
 
     // Parse each JUnit report into a module-level structure
