@@ -12,7 +12,8 @@
   "scripts": {
     "dev": "vitest --watch",
     "build": "vite build && tsc -p tsconfig.types.json",
-    "test": "npm run lint && vitest",
+    "test": "npm run lint && npm run typecheck && vitest",
+    "typecheck": "tsc --noEmit",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "format": "prettier --write .",
