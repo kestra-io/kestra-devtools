@@ -30,3 +30,10 @@ jobs:
 
       - name: Run tests
         run: npm run test
+
+      # The tests run the TypeScript sources, not the bundle: load the built CLI too
+      # (1.0.44 shipped a bundle that crashed at load time with green tests).
+      - name: Build and load the CLI bundle
+        run: |
+          npm run build
+          node dist/kestra-devtools.cjs --help

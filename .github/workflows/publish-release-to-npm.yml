@@ -46,6 +46,10 @@ jobs:
       - name: Run tests
         run: npm run test
 
+      # Load the committed bundle that is about to be published (1.0.44 crashed at load time).
+      - name: Load the CLI bundle
+        run: node dist/kestra-devtools.cjs --help
+
       - name: publish publicly to npm
         run: |
           npm publish --access=public
